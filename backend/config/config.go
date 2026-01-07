@@ -18,7 +18,6 @@ func Init() {
 		log.Fatal("Error reading .env file:  ", err)
 	}
 	DB = connectDB()
-	migrateDB(DB)
 }
 
 func connectDB() *gorm.DB {
