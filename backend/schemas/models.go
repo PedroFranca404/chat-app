@@ -1,15 +1,14 @@
-package database
+package schemas
 
 import (
 	"time"
-
 	"github.com/google/uuid"
 )
 
 type Users struct {
 	Id        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
-	Name      string
-	Password  string
+	Name      string    `gorm:"uniqueIndex;not null"`
+	Password  string    `gorm:"not null"` // Already encrypted and hashed -> Authentication middleware will handle this
 	AvatarUrl string
 	Status    string
 	CreatedAt time.Time

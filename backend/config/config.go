@@ -1,10 +1,12 @@
 package config
 
 import (
+	"context"
 	"log"
 	"os"
+	"time"
 
-	database "github.com/PedroFranca404/chat-app/schemas"
+	"github.com/PedroFranca404/chat-app/schemas"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -15,9 +17,10 @@ var DB *gorm.DB
 func Init() {
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal("Error reading .env file:  ", err)
+		log.Println("Warning: .env file not found, using system environment variables")
 	}
 	DB = connectDB()
+	migrateDB(DB)
 }
 
 func connectDB() *gorm.DB {
@@ -33,16 +36,33 @@ func connectDB() *gorm.DB {
 	return db
 }
 
-// Just use when migrating DB
 func migrateDB(db *gorm.DB) {
 	err := db.AutoMigrate(
-		&database.Users{},
-		&database.Conversations{},
-		&database.Participants{},
-		&database.Messages{},
+		&schemas.Users{},
+		&schemas.Conversations{},
+		&schemas.Participants{},
+		&schemas.Messages{},
 	)
 
 	if err != nil {
 		log.Fatal("Error migrating database: ", err)
 	}
+}
+
+func CheckDBStatus() bool {
+	if DB == nil {
+		return false
+	}
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return false
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return false
+	}
+	return true
 }
