@@ -3,6 +3,8 @@ package auth
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/PedroFranca404/chat-app/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -18,19 +20,13 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Mutex para prevenir race conditions e data corruption.
-	// LOCK -> READ -> UNLOCK
-	dbLock.Lock()
-	storedHash, exists := userDB[creds.Username]
-	dbLock.Unlock()
-
-	if !exists {
-		http.Error(w, "User not found", http.StatusUnauthorized)
+	storedHash, err := repository.GetPasswordOfUsername(creds.Username)
+	if err != nil {
+		http.Error(w, "User not found or database error", http.StatusUnauthorized)
 		return
 	}
 
-	// Compara a password recebida com o hash da DB
-	err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(creds.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(creds.Password))
 	if err != nil {
 		http.Error(w, "Wrong password", http.StatusUnauthorized)
 		return

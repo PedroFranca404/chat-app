@@ -3,6 +3,8 @@ package auth
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/PedroFranca404/chat-app/repository"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -24,11 +26,11 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Mutex para prevenir race conditions.
-	// LOCK -> WRITE -> UNLOCK
-	dbLock.Lock()
-	userDB[creds.Username] = string(hashedPassword)
-	dbLock.Unlock()
+	_, err = repository.AddUser(creds.Username, string(hashedPassword), "default.png")
+	if err != nil {
+		http.Error(w, "Could not register user: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("User registered"))
