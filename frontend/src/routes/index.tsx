@@ -1,9 +1,13 @@
+<<<<<<<< HEAD:frontend/src/routes/index.tsx
 import { createFileRoute } from '@tanstack/react-router'
 export const Route = createFileRoute('/')({
   component: App,
 })
 
 import React, { useState, useEffect, useRef } from 'react'
+========
+import React, { useState, useEffect, useRef } from "react";
+>>>>>>>> 5b54ff1e8b43d4e11b32165b63e30af36cc9e9c5:frontend/src/App.tsx
 import {
   Send,
   Hash,
@@ -17,6 +21,7 @@ import {
   Code,
 } from 'lucide-react'
 
+<<<<<<<< HEAD:frontend/src/routes/index.tsx
 type UserStatus = 'online' | 'busy' | 'offline' | string
 
 interface User {
@@ -40,6 +45,35 @@ type ChatMap = Record<number, Message[]>
 
 interface ChatAppProps {
   onLogout: () => void
+========
+type UserStatus = "online" | "busy" | "offline" | string;
+
+interface User {
+  id: number;
+  name: string;
+  handle: string;
+  status: UserStatus;
+  avatar: string | null;
+  isGroup?: boolean;
+}
+
+interface Message {
+  id: number;
+  text: string;
+  sender: string;
+  time: string;
+  read: boolean;
+}
+
+type ChatMap = Record<number, Message[]>;
+
+interface LoginScreenProps {
+  onLogin: () => void;
+}
+
+interface ChatAppProps {
+  onLogout: () => void;
+>>>>>>>> 5b54ff1e8b43d4e11b32165b63e30af36cc9e9c5:frontend/src/App.tsx
 }
 
 const USERS: User[] = [
@@ -125,6 +159,7 @@ const MOCK_CHATS: ChatMap = {
   ],
 }
 
+<<<<<<<< HEAD:frontend/src/routes/index.tsx
 export default function App() {
   const [activeChat, setActiveChat] = useState<number>(1)
   const [messages, setMessages] = useState<ChatMap>(MOCK_CHATS)
@@ -133,6 +168,76 @@ export default function App() {
 
   const activeUser = USERS.find((u) => u.id === activeChat)
   const currentMessages = messages[activeChat] || []
+========
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => (
+  <div className="relative flex items-center justify-center h-screen w-full bg-[#050505] overflow-hidden font-sans text-zinc-300 selection:bg-indigo-500/30">
+    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[128px] animate-pulse" />
+    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-[128px]" />
+
+    <div className="relative z-10 w-full max-w-md p-8 bg-zinc-900/40 backdrop-blur-2xl border border-white/5 rounded-2xl shadow-2xl">
+      <div className="flex justify-center mb-8">
+        <div className="p-3 bg-white/5 rounded-xl border border-white/10">
+          <Code className="w-8 h-8 text-indigo-400" />
+        </div>
+      </div>
+
+      <h2 className="text-2xl font-light text-center text-white mb-2 tracking-tight">
+        Access Terminal
+      </h2>
+      <p className="text-center text-zinc-500 text-sm font-mono mb-8">
+        ENTER CREDENTIALS TO CONNECT
+      </p>
+
+      <form
+        onSubmit={(e: React.FormEvent) => {
+          e.preventDefault();
+          onLogin();
+        }}
+        className="space-y-6"
+      >
+        <div className="group">
+          <label className="text-xs font-mono text-zinc-500 uppercase tracking-wider ml-1">
+            Username
+          </label>
+          <input
+            type="text"
+            className="w-full bg-transparent border-b border-zinc-700 py-3 text-indigo-100 focus:outline-none focus:border-indigo-500 transition-all font-mono placeholder:text-zinc-700"
+            placeholder="dev_user"
+          />
+        </div>
+        <div className="group">
+          <label className="text-xs font-mono text-zinc-500 uppercase tracking-wider ml-1">
+            Password
+          </label>
+          <input
+            type="password"
+            className="w-full bg-transparent border-b border-zinc-700 py-3 text-indigo-100 focus:outline-none focus:border-indigo-500 transition-all font-mono placeholder:text-zinc-700"
+            placeholder="••••••••"
+          />
+        </div>
+
+        <button className="w-full py-4 mt-4 bg-white/5 hover:bg-indigo-600/20 border border-white/10 hover:border-indigo-500/50 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 group">
+          <span className="group-hover:translate-x-1 transition-transform">
+            Initialize Session
+          </span>
+          <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+            →
+          </span>
+        </button>
+      </form>
+    </div>
+  </div>
+);
+
+const ChatApp: React.FC<ChatAppProps> = ({ onLogout }) => {
+  const [activeChat, setActiveChat] = useState<number>(1);
+  const [messages, setMessages] = useState<ChatMap>(MOCK_CHATS);
+  const [inputText, setInputText] = useState<string>("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const activeUser = USERS.find((u) => u.id === activeChat);
+  const currentMessages = messages[activeChat] || [];
+>>>>>>>> 5b54ff1e8b43d4e11b32165b63e30af36cc9e9c5:frontend/src/App.tsx
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -142,6 +247,7 @@ export default function App() {
     scrollToBottom()
   }, [currentMessages, activeChat])
 
+<<<<<<<< HEAD:frontend/src/routes/index.tsx
   // TODO:
   const onLogout = () => {}
 
@@ -149,6 +255,12 @@ export default function App() {
     e.preventDefault()
     if (!inputText.trim()) return
 
+========
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputText.trim()) return;
+
+>>>>>>>> 5b54ff1e8b43d4e11b32165b63e30af36cc9e9c5:frontend/src/App.tsx
     const newMessage: Message = {
       id: Date.now(),
       text: inputText,
@@ -168,6 +280,8 @@ export default function App() {
   }
 
   if (!activeUser) return null
+
+  if (!activeUser) return null;
 
   return (
     <div className="flex h-screen w-full bg-[#050505] text-zinc-200 font-sans overflow-hidden selection:bg-indigo-500/30">
@@ -221,7 +335,11 @@ export default function App() {
                   </div>
                 ) : (
                   <img
+<<<<<<<< HEAD:frontend/src/routes/index.tsx
                     src={user.avatar || ''}
+========
+                    src={user.avatar || ""}
+>>>>>>>> 5b54ff1e8b43d4e11b32165b63e30af36cc9e9c5:frontend/src/App.tsx
                     alt={user.name}
                     className="w-10 h-10 rounded-xl grayscale group-hover:grayscale-0 transition-all border border-zinc-800"
                   />
@@ -295,8 +413,15 @@ export default function App() {
 
         <div className="flex-1 overflow-y-auto px-4 pt-24 pb-4">
           {currentMessages.map((msg) => {
+<<<<<<<< HEAD:frontend/src/routes/index.tsx
             const isMe = msg.sender === 'me'
             const senderUser = USERS.find((u) => u.id.toString() === msg.sender)
+========
+            const isMe = msg.sender === "me";
+            const senderUser = USERS.find(
+              (u) => u.id.toString() === msg.sender
+            );
+>>>>>>>> 5b54ff1e8b43d4e11b32165b63e30af36cc9e9c5:frontend/src/App.tsx
 
             return (
               <div
@@ -415,7 +540,11 @@ export default function App() {
               </div>
             ) : (
               <img
+<<<<<<<< HEAD:frontend/src/routes/index.tsx
                 src={activeUser.avatar || ''}
+========
+                src={activeUser.avatar || ""}
+>>>>>>>> 5b54ff1e8b43d4e11b32165b63e30af36cc9e9c5:frontend/src/App.tsx
                 className="w-full h-full rounded-xl object-cover grayscale"
                 alt="profile"
               />
@@ -504,5 +633,24 @@ export default function App() {
         </div>
       </aside>
     </div>
+<<<<<<<< HEAD:frontend/src/routes/index.tsx
   )
 }
+========
+  );
+};
+
+export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  return (
+    <>
+      {isLoggedIn ? (
+        <ChatApp onLogout={() => setIsLoggedIn(false)} />
+      ) : (
+        <LoginScreen onLogin={() => setIsLoggedIn(true)} />
+      )}
+    </>
+  );
+}
+>>>>>>>> 5b54ff1e8b43d4e11b32165b63e30af36cc9e9c5:frontend/src/App.tsx
