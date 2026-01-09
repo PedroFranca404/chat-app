@@ -26,12 +26,16 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = repository.AddUser(creds.Username, string(hashedPassword), "default.png")
+	user, err := repository.AddUser(creds.Username, string(hashedPassword), "default.png")
 	if err != nil {
 		http.Error(w, "Could not register user: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("User registered"))
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message":   "User registered",
+		"client_id": user.ClientId.String(),
+	})
 }
