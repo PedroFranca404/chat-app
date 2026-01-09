@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Send,
   Hash,
@@ -12,7 +12,36 @@ import {
   Code,
 } from "lucide-react";
 
-const USERS = [
+type UserStatus = "online" | "busy" | "offline" | string;
+
+interface User {
+  id: number;
+  name: string;
+  handle: string;
+  status: UserStatus;
+  avatar: string | null;
+  isGroup?: boolean;
+}
+
+interface Message {
+  id: number;
+  text: string;
+  sender: string;
+  time: string;
+  read: boolean;
+}
+
+type ChatMap = Record<number, Message[]>;
+
+interface LoginScreenProps {
+  onLogin: () => void;
+}
+
+interface ChatAppProps {
+  onLogout: () => void;
+}
+
+const USERS: User[] = [
   {
     id: 1,
     name: "Sarah Engineer",
@@ -44,7 +73,7 @@ const USERS = [
   },
 ];
 
-const MOCK_CHATS = {
+const MOCK_CHATS: ChatMap = {
   1: [
     {
       id: 1,
@@ -95,7 +124,7 @@ const MOCK_CHATS = {
   ],
 };
 
-const LoginScreen = ({ onLogin }) => (
+const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => (
   <div className="relative flex items-center justify-center h-screen w-full bg-[#050505] overflow-hidden font-sans text-zinc-300 selection:bg-indigo-500/30">
     <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[128px] animate-pulse" />
     <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-[128px]" />
@@ -115,7 +144,7 @@ const LoginScreen = ({ onLogin }) => (
       </p>
 
       <form
-        onSubmit={(e) => {
+        onSubmit={(e: React.FormEvent) => {
           e.preventDefault();
           onLogin();
         }}
@@ -155,11 +184,11 @@ const LoginScreen = ({ onLogin }) => (
   </div>
 );
 
-const ChatApp = ({ onLogout }) => {
-  const [activeChat, setActiveChat] = useState(1);
-  const [messages, setMessages] = useState(MOCK_CHATS);
-  const [inputText, setInputText] = useState("");
-  const messagesEndRef = useRef(null);
+const ChatApp: React.FC<ChatAppProps> = ({ onLogout }) => {
+  const [activeChat, setActiveChat] = useState<number>(1);
+  const [messages, setMessages] = useState<ChatMap>(MOCK_CHATS);
+  const [inputText, setInputText] = useState<string>("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const activeUser = USERS.find((u) => u.id === activeChat);
   const currentMessages = messages[activeChat] || [];
@@ -172,11 +201,11 @@ const ChatApp = ({ onLogout }) => {
     scrollToBottom();
   }, [currentMessages, activeChat]);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
-    const newMessage = {
+    const newMessage: Message = {
       id: Date.now(),
       text: inputText,
       sender: "me",
@@ -193,6 +222,8 @@ const ChatApp = ({ onLogout }) => {
     }));
     setInputText("");
   };
+
+  if (!activeUser) return null;
 
   return (
     <div className="flex h-screen w-full bg-[#050505] text-zinc-200 font-sans overflow-hidden selection:bg-indigo-500/30">
@@ -246,7 +277,7 @@ const ChatApp = ({ onLogout }) => {
                   </div>
                 ) : (
                   <img
-                    src={user.avatar}
+                    src={user.avatar || ""}
                     alt={user.name}
                     className="w-10 h-10 rounded-xl grayscale group-hover:grayscale-0 transition-all border border-zinc-800"
                   />
@@ -319,7 +350,7 @@ const ChatApp = ({ onLogout }) => {
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 pt-24 pb-4">
-          {currentMessages.map((msg, idx) => {
+          {currentMessages.map((msg) => {
             const isMe = msg.sender === "me";
             const senderUser = USERS.find(
               (u) => u.id.toString() === msg.sender
@@ -442,7 +473,7 @@ const ChatApp = ({ onLogout }) => {
               </div>
             ) : (
               <img
-                src={activeUser.avatar}
+                src={activeUser.avatar || ""}
                 className="w-full h-full rounded-xl object-cover grayscale"
                 alt="profile"
               />
@@ -535,7 +566,7 @@ const ChatApp = ({ onLogout }) => {
 };
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   return (
     <>
