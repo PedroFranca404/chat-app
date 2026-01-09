@@ -96,6 +96,13 @@ func (c *Client) writePump() {
 }
 
 func ServeWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	clientId := r.URL.Query().Get("client_id")
+	_, err := ValidateUser(clientId)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
