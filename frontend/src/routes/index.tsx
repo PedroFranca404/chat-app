@@ -1,4 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { createFileRoute } from '@tanstack/react-router'
+export const Route = createFileRoute('/')({
+  component: App,
+})
+
+import React, { useState, useEffect, useRef } from 'react'
 import {
   Send,
   Hash,
@@ -10,189 +15,159 @@ import {
   CheckCheck,
   LogOut,
   Code,
-} from "lucide-react";
+} from 'lucide-react'
 
-const USERS = [
+type UserStatus = 'online' | 'busy' | 'offline' | string
+
+interface User {
+  id: number
+  name: string
+  handle: string
+  status: UserStatus
+  avatar: string | null
+  isGroup?: boolean
+}
+
+interface Message {
+  id: number
+  text: string
+  sender: string
+  time: string
+  read: boolean
+}
+
+type ChatMap = Record<number, Message[]>
+
+interface ChatAppProps {
+  onLogout: () => void
+}
+
+const USERS: User[] = [
   {
     id: 1,
-    name: "Sarah Engineer",
-    handle: "@sarah_dev",
-    status: "online",
-    avatar: "assets/images/profile_pic_1.jpg",
+    name: 'Sarah Engineer',
+    handle: '@sarah_dev',
+    status: 'online',
+    avatar: 'assets/images/profile_pic_1.jpg',
   },
   {
     id: 2,
-    name: "Alex Frontend",
-    handle: "@alex_css",
-    status: "busy",
-    avatar: "assets/images/profile_pic_2.jpg",
+    name: 'Alex Frontend',
+    handle: '@alex_css',
+    status: 'busy',
+    avatar: 'assets/images/profile_pic_2.jpg',
   },
   {
     id: 3,
-    name: "Design Team",
-    handle: "#design-sys",
-    status: "offline",
+    name: 'Design Team',
+    handle: '#design-sys',
+    status: 'offline',
     isGroup: true,
     avatar: null,
   },
   {
     id: 4,
-    name: "Rogue AI",
-    handle: "@bot_01",
-    status: "online",
-    avatar: "assets/images/profile_pic_3.jpg",
+    name: 'Rogue AI',
+    handle: '@bot_01',
+    status: 'online',
+    avatar: 'assets/images/profile_pic_3.jpg',
   },
-];
+]
 
-const MOCK_CHATS = {
+const MOCK_CHATS: ChatMap = {
   1: [
     {
       id: 1,
-      text: "França, já fizeste os helpers?",
-      sender: "1",
-      time: "10:23 AM",
+      text: 'França, já fizeste os helpers?',
+      sender: '1',
+      time: '10:23 AM',
       read: true,
     },
     {
       id: 2,
-      text: "Ainda não, mas está quase...",
-      sender: "me",
-      time: "10:24 AM",
+      text: 'Ainda não, mas está quase...',
+      sender: 'me',
+      time: '10:24 AM',
       read: true,
     },
     {
       id: 3,
-      text: "Okk, então depois manda prod.",
-      sender: "1",
-      time: "10:45 AM",
+      text: 'Okk, então depois manda prod.',
+      sender: '1',
+      time: '10:45 AM',
       read: true,
     },
   ],
   2: [
     {
       id: 1,
-      text: "Hey, teste de mensagem multi-user.",
-      sender: "2",
-      time: "09:00 AM",
+      text: 'Hey, teste de mensagem multi-user.',
+      sender: '2',
+      time: '09:00 AM',
       read: true,
     },
   ],
   3: [
     {
       id: 1,
-      text: "20 dias restantes para o desafio.",
-      sender: "1",
-      time: "14:00 PM",
+      text: '20 dias restantes para o desafio.',
+      sender: '1',
+      time: '14:00 PM',
       read: false,
     },
     {
       id: 2,
-      text: "Auth e DB já estão feitos.",
-      sender: "2",
-      time: "14:00 PM",
+      text: 'Auth e DB já estão feitos.',
+      sender: '2',
+      time: '14:00 PM',
       read: false,
     },
   ],
-};
+}
 
-const LoginScreen = ({ onLogin }) => (
-  <div className="relative flex items-center justify-center h-screen w-full bg-[#050505] overflow-hidden font-sans text-zinc-300 selection:bg-indigo-500/30">
-    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[128px] animate-pulse" />
-    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-600/10 rounded-full blur-[128px]" />
+export default function App() {
+  const [activeChat, setActiveChat] = useState<number>(1)
+  const [messages, setMessages] = useState<ChatMap>(MOCK_CHATS)
+  const [inputText, setInputText] = useState<string>('')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-    <div className="relative z-10 w-full max-w-md p-8 bg-zinc-900/40 backdrop-blur-2xl border border-white/5 rounded-2xl shadow-2xl">
-      <div className="flex justify-center mb-8">
-        <div className="p-3 bg-white/5 rounded-xl border border-white/10">
-          <Code className="w-8 h-8 text-indigo-400" />
-        </div>
-      </div>
-
-      <h2 className="text-2xl font-light text-center text-white mb-2 tracking-tight">
-        Access Terminal
-      </h2>
-      <p className="text-center text-zinc-500 text-sm font-mono mb-8">
-        ENTER CREDENTIALS TO CONNECT
-      </p>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          onLogin();
-        }}
-        className="space-y-6"
-      >
-        <div className="group">
-          <label className="text-xs font-mono text-zinc-500 uppercase tracking-wider ml-1">
-            Username
-          </label>
-          <input
-            type="text"
-            className="w-full bg-transparent border-b border-zinc-700 py-3 text-indigo-100 focus:outline-none focus:border-indigo-500 transition-all font-mono placeholder:text-zinc-700"
-            placeholder="dev_user"
-          />
-        </div>
-        <div className="group">
-          <label className="text-xs font-mono text-zinc-500 uppercase tracking-wider ml-1">
-            Password
-          </label>
-          <input
-            type="password"
-            className="w-full bg-transparent border-b border-zinc-700 py-3 text-indigo-100 focus:outline-none focus:border-indigo-500 transition-all font-mono placeholder:text-zinc-700"
-            placeholder="••••••••"
-          />
-        </div>
-
-        <button className="w-full py-4 mt-4 bg-white/5 hover:bg-indigo-600/20 border border-white/10 hover:border-indigo-500/50 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 group">
-          <span className="group-hover:translate-x-1 transition-transform">
-            Initialize Session
-          </span>
-          <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-            →
-          </span>
-        </button>
-      </form>
-    </div>
-  </div>
-);
-
-const ChatApp = ({ onLogout }) => {
-  const [activeChat, setActiveChat] = useState(1);
-  const [messages, setMessages] = useState(MOCK_CHATS);
-  const [inputText, setInputText] = useState("");
-  const messagesEndRef = useRef(null);
-
-  const activeUser = USERS.find((u) => u.id === activeChat);
-  const currentMessages = messages[activeChat] || [];
+  const activeUser = USERS.find((u) => u.id === activeChat)
+  const currentMessages = messages[activeChat] || []
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   useEffect(() => {
-    scrollToBottom();
-  }, [currentMessages, activeChat]);
+    scrollToBottom()
+  }, [currentMessages, activeChat])
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!inputText.trim()) return;
+  // TODO:
+  const onLogout = () => {}
 
-    const newMessage = {
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inputText.trim()) return
+
+    const newMessage: Message = {
       id: Date.now(),
       text: inputText,
-      sender: "me",
+      sender: 'me',
       time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
+        hour: '2-digit',
+        minute: '2-digit',
       }),
       read: false,
-    };
+    }
 
     setMessages((prev) => ({
       ...prev,
       [activeChat]: [...(prev[activeChat] || []), newMessage],
-    }));
-    setInputText("");
-  };
+    }))
+    setInputText('')
+  }
+
+  if (!activeUser) return null
 
   return (
     <div className="flex h-screen w-full bg-[#050505] text-zinc-200 font-sans overflow-hidden selection:bg-indigo-500/30">
@@ -235,8 +210,8 @@ const ChatApp = ({ onLogout }) => {
               onClick={() => setActiveChat(user.id)}
               className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group border border-transparent ${
                 activeChat === user.id
-                  ? "bg-white/5 border-white/5 shadow-inner"
-                  : "hover:bg-white/5 hover:border-white/5"
+                  ? 'bg-white/5 border-white/5 shadow-inner'
+                  : 'hover:bg-white/5 hover:border-white/5'
               }`}
             >
               <div className="relative">
@@ -246,7 +221,7 @@ const ChatApp = ({ onLogout }) => {
                   </div>
                 ) : (
                   <img
-                    src={user.avatar}
+                    src={user.avatar || ''}
                     alt={user.name}
                     className="w-10 h-10 rounded-xl grayscale group-hover:grayscale-0 transition-all border border-zinc-800"
                   />
@@ -254,11 +229,11 @@ const ChatApp = ({ onLogout }) => {
                 {!user.isGroup && (
                   <div
                     className={`absolute -bottom-1 -right-1 w-3 h-3 border-2 border-black rounded-full ${
-                      user.status === "online"
-                        ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"
-                        : user.status === "busy"
-                        ? "bg-amber-500"
-                        : "bg-zinc-600"
+                      user.status === 'online'
+                        ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]'
+                        : user.status === 'busy'
+                          ? 'bg-amber-500'
+                          : 'bg-zinc-600'
                     }`}
                   />
                 )}
@@ -269,8 +244,8 @@ const ChatApp = ({ onLogout }) => {
                   <span
                     className={`text-sm font-medium ${
                       activeChat === user.id
-                        ? "text-white"
-                        : "text-zinc-400 group-hover:text-zinc-200"
+                        ? 'text-white'
+                        : 'text-zinc-400 group-hover:text-zinc-200'
                     }`}
                   >
                     {user.name}
@@ -308,7 +283,7 @@ const ChatApp = ({ onLogout }) => {
               {activeUser.name}
             </div>
             <div className="px-2 py-0.5 rounded-full bg-white/5 border border-white/5 text-[10px] font-mono text-zinc-400">
-              {activeUser.isGroup ? "GROUP" : "DM"}
+              {activeUser.isGroup ? 'GROUP' : 'DM'}
             </div>
           </div>
           <div className="flex items-center gap-4 text-zinc-400">
@@ -319,22 +294,20 @@ const ChatApp = ({ onLogout }) => {
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 pt-24 pb-4">
-          {currentMessages.map((msg, idx) => {
-            const isMe = msg.sender === "me";
-            const senderUser = USERS.find(
-              (u) => u.id.toString() === msg.sender
-            );
+          {currentMessages.map((msg) => {
+            const isMe = msg.sender === 'me'
+            const senderUser = USERS.find((u) => u.id.toString() === msg.sender)
 
             return (
               <div
                 key={msg.id}
                 className={`flex w-full mb-6 ${
-                  isMe ? "justify-end" : "justify-start"
+                  isMe ? 'justify-end' : 'justify-start'
                 }`}
               >
                 <div
                   className={`flex items-end gap-3 ${
-                    isMe ? "flex-row-reverse" : "flex-row"
+                    isMe ? 'flex-row-reverse' : 'flex-row'
                   }`}
                 >
                   {!isMe && activeUser.isGroup && (
@@ -355,7 +328,7 @@ const ChatApp = ({ onLogout }) => {
 
                   <div
                     className={`flex flex-col ${
-                      isMe ? "items-end" : "items-start"
+                      isMe ? 'items-end' : 'items-start'
                     }`}
                   >
                     <div
@@ -363,8 +336,8 @@ const ChatApp = ({ onLogout }) => {
                   relative px-6 py-3.5 rounded-2xl text-sm leading-relaxed
                   ${
                     isMe
-                      ? "bg-zinc-800/50 border border-indigo-500/20 text-indigo-50 rounded-tr-sm shadow-[0_4px_20px_-5px_rgba(99,102,241,0.1)]"
-                      : "bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-tl-sm"
+                      ? 'bg-zinc-800/50 border border-indigo-500/20 text-indigo-50 rounded-tr-sm shadow-[0_4px_20px_-5px_rgba(99,102,241,0.1)]'
+                      : 'bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-tl-sm'
                   }
                  `}
                     >
@@ -388,7 +361,7 @@ const ChatApp = ({ onLogout }) => {
                         <CheckCheck
                           size={12}
                           className={
-                            msg.read ? "text-emerald-500" : "text-zinc-600"
+                            msg.read ? 'text-emerald-500' : 'text-zinc-600'
                           }
                         />
                       )}
@@ -396,7 +369,7 @@ const ChatApp = ({ onLogout }) => {
                   </div>
                 </div>
               </div>
-            );
+            )
           })}
           <div ref={messagesEndRef} />
         </div>
@@ -406,7 +379,7 @@ const ChatApp = ({ onLogout }) => {
             onSubmit={handleSendMessage}
             className="relative flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-2 px-4 focus-within:border-indigo-500/30 focus-within:bg-zinc-900/80 transition-all shadow-lg backdrop-blur-sm"
           >
-            <span className="text-zinc-600 font-mono select-none">{">"}</span>
+            <span className="text-zinc-600 font-mono select-none">{'>'}</span>
             <input
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -418,8 +391,8 @@ const ChatApp = ({ onLogout }) => {
               disabled={!inputText.trim()}
               className={`p-2 rounded-xl transition-all ${
                 inputText.trim()
-                  ? "bg-indigo-600 text-white shadow-[0_0_15px_-3px_rgba(79,70,229,0.5)]"
-                  : "bg-transparent text-zinc-700"
+                  ? 'bg-indigo-600 text-white shadow-[0_0_15px_-3px_rgba(79,70,229,0.5)]'
+                  : 'bg-transparent text-zinc-700'
               }`}
             >
               <Send size={18} />
@@ -442,7 +415,7 @@ const ChatApp = ({ onLogout }) => {
               </div>
             ) : (
               <img
-                src={activeUser.avatar}
+                src={activeUser.avatar || ''}
                 className="w-full h-full rounded-xl object-cover grayscale"
                 alt="profile"
               />
@@ -463,12 +436,12 @@ const ChatApp = ({ onLogout }) => {
           </div>
         </div>
 
-        <div className="p-6 flex-1 overflow-y-auto">
+        <div className="p-6 flex-1 overflow-auto">
           <h3 className="text-[10px] font-mono uppercase text-zinc-600 mb-4 tracking-widest">
             Properties
           </h3>
 
-          <div className="space-y-4">
+          <div className="space-y-4 ">
             <div className="flex justify-between items-center group">
               <span className="text-sm text-zinc-500">User ID</span>
               <span className="text-xs font-mono text-zinc-300 bg-zinc-900 px-2 py-1 rounded border border-zinc-800 group-hover:border-zinc-700 transition-colors">
@@ -479,16 +452,16 @@ const ChatApp = ({ onLogout }) => {
               <span className="text-sm text-zinc-500">Status</span>
               <span
                 className={`text-xs font-mono px-2 py-1 rounded border border-white/5 ${
-                  activeUser.status === "online"
-                    ? "text-emerald-400 bg-emerald-400/10"
-                    : activeUser.status === "busy"
-                    ? "text-amber-400 bg-amber-400/10"
-                    : "text-zinc-400 bg-zinc-800"
+                  activeUser.status === 'online'
+                    ? 'text-emerald-400 bg-emerald-400/10'
+                    : activeUser.status === 'busy'
+                      ? 'text-amber-400 bg-amber-400/10'
+                      : 'text-zinc-400 bg-zinc-800'
                 }`}
               >
                 {activeUser.status
                   ? activeUser.status.toUpperCase()
-                  : "UNKNOWN"}
+                  : 'UNKNOWN'}
               </span>
             </div>
             <div className="flex justify-between items-center">
@@ -508,8 +481,8 @@ const ChatApp = ({ onLogout }) => {
                 key={i}
                 className={`aspect-square rounded-sm ${
                   Math.random() > 0.7
-                    ? "bg-indigo-500/40 shadow-[0_0_5px_rgba(99,102,241,0.2)]"
-                    : "bg-zinc-800/50"
+                    ? 'bg-indigo-500/40 shadow-[0_0_5px_rgba(99,102,241,0.2)]'
+                    : 'bg-zinc-800/50'
                 }`}
               />
             ))}
@@ -531,19 +504,5 @@ const ChatApp = ({ onLogout }) => {
         </div>
       </aside>
     </div>
-  );
-};
-
-export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  return (
-    <>
-      {isLoggedIn ? (
-        <ChatApp onLogout={() => setIsLoggedIn(false)} />
-      ) : (
-        <LoginScreen onLogin={() => setIsLoggedIn(true)} />
-      )}
-    </>
-  );
+  )
 }
