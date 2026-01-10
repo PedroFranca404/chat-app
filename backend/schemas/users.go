@@ -12,6 +12,7 @@ type Users struct {
 	Password  string    `gorm:"not null"`
 	AvatarUrl string
 	Status    string
+	ClientId  uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();not null;index"`
 	CreatedAt time.Time
 }
 

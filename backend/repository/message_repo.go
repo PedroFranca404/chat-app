@@ -49,3 +49,13 @@ func GetDaysUserSentMessage(userId uuid.UUID) ([]time.Time, error) {
 
 	return dates, err
 }
+
+func GetMessages(conversationId uuid.UUID, limit, offset int) ([]schemas.Messages, error) {
+	var messages []schemas.Messages
+	result := config.DB.Where("conversation_id = ?", conversationId).
+		Order("created_at desc").
+		Limit(limit).
+		Offset(offset).
+		Find(&messages)
+	return messages, result.Error
+}
