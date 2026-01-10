@@ -50,9 +50,9 @@ This project was built using the following technologies:
 | Category | Technology |
 | --- | --- |
 | **Frontend** | React, TailwindCSS, TypeScript |
-| **Backend** | Go, Prisma |
+| **Backend** | Go, Gorm |
 | **Database** | Postgres |
-| **Real-time** | Protocol WebSocket |
+| **Real-time** | WebSocket Protocol |
 | **Authentication** | Custom ClientID, Bcrypt |
 | **Deployment** | Vercel |
 
