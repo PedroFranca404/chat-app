@@ -234,7 +234,7 @@ function RouteComponent() {
                 <Hash className="text-zinc-500" />
               </div>
             ) : (
-              <img src={activeUser.avatar} className="w-full h-full rounded-xl object-cover grayscale" alt="profile" />
+              <img src={activeUser.avatar!} className="w-full h-full rounded-xl object-cover grayscale" alt="profile" />
             )}
           </div>
           <h2 className="text-lg font-medium text-white">{activeUser.name}</h2>
