@@ -94,11 +94,11 @@ Follow these steps to set up the project locally.
     ```bash
     # Backend
     cd backend
-    [ França, completa isto ]
+    go mod tidy
 
     # Frontend
     cd ../frontend
-    [ França, completa isto ]
+    npm install
     ```
 
 3.  **Environment Variables**
@@ -117,7 +117,7 @@ Follow these steps to set up the project locally.
     Terminal 2 (Frontend):
     ```bash
     cd frontend
-    npm run dev
+    npx vite
     ```
 
 5.  **Access the app**
