@@ -1,13 +1,44 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { Code } from 'lucide-react'
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { Code } from "lucide-react";
+import { handleRegister, ValidateUser } from "../../services/Auth";
+import { useState } from "react";
+import { ErrorAlert } from "../../components/alert";
 
-export const Route = createFileRoute('/(auth)/register')({
+export const Route = createFileRoute("/(auth)/register")({
   component: RouteComponent,
-})
+  beforeLoad: async () => {
+    const validUser = await ValidateUser();
+    if (validUser)
+      throw redirect({
+        to: "/",
+      });
+  },
+});
 
 function RouteComponent() {
-  // TODO:
-  const onSignup = () => {}
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [formError, setFormError] = useState("");
+  const navigate = useNavigate();
+
+  const submitForm = async () => {
+    if (username == "" || password == "" || confirmPassword == "") {
+      setFormError("Please fill all the inputs");
+      return;
+    }
+    if (password != confirmPassword) {
+      setFormError("Passwords do not match");
+      return;
+    }
+    setFormError("");
+    try {
+      await handleRegister(username, password); // <--- aguarda o registro
+      navigate({ to: "/" }); // <--- só navega depois que o registro terminar
+    } catch (e: any) {
+      setFormError(e.response?.data?.message || "Registration failed");
+    }
+  };
 
   return (
     <div className="relative flex items-center justify-center h-screen w-full bg-[#050505] overflow-hidden font-sans text-zinc-300 selection:bg-indigo-500/30">
@@ -28,10 +59,12 @@ function RouteComponent() {
           ENTER CREDENTIALS TO REGISTER
         </p>
 
+        {formError && <ErrorAlert title={formError} />}
+
         <form
-          onSubmit={(e: React.FormEvent) => {
-            e.preventDefault()
-            onSignup()
+          onSubmit={async (e: React.FormEvent) => {
+            e.preventDefault();
+            await submitForm();
           }}
           className="space-y-6"
         >
@@ -43,6 +76,10 @@ function RouteComponent() {
               type="text"
               className="w-full bg-transparent border-b border-zinc-700 py-3 text-indigo-100 focus:outline-hidden focus:border-indigo-500 transition-all font-mono placeholder:text-zinc-700"
               placeholder="dev_user"
+              value={username}
+              onChange={(e) => {
+                setUsername(e.target.value);
+              }}
             />
           </div>
           <div className="group">
@@ -53,6 +90,10 @@ function RouteComponent() {
               type="password"
               className="w-full bg-transparent border-b border-zinc-700 py-3 text-indigo-100 focus:outline-hidden focus:border-indigo-500 transition-all font-mono placeholder:text-zinc-700"
               placeholder="••••••••"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
             />
           </div>
 
@@ -64,6 +105,10 @@ function RouteComponent() {
               type="password"
               className="w-full bg-transparent border-b border-zinc-700 py-3 text-indigo-100 focus:outline-hidden focus:border-indigo-500 transition-all font-mono placeholder:text-zinc-700"
               placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+              }}
             />
           </div>
 
@@ -78,7 +123,7 @@ function RouteComponent() {
         </form>
         <div className="flex justify-center m-5">
           <p>
-            Already have an account?{' '}
+            Already have an account?{" "}
             <a href="register" className="text-indigo-400">
               Login here.
             </a>
@@ -86,5 +131,5 @@ function RouteComponent() {
         </div>
       </div>
     </div>
-  )
+  );
 }

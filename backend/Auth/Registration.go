@@ -32,10 +32,18 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	http.SetCookie(w, &http.Cookie{
+		Name:     "client_id",
+		Value:    user.ClientId.String(),
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   false,
+	})
+
 	w.WriteHeader(http.StatusCreated)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"message":   "User registered",
-		"client_id": user.ClientId.String(),
+		"message": "User registered",
 	})
 }
