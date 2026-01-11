@@ -16,6 +16,12 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var cookieValue string
+	cookie, err := r.Cookie("client_id")
+	if err == nil {
+		cookieValue = cookie.Value
+	}
+
 	var creds Credentials
 	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
 		http.Error(w, "Invalid body", http.StatusBadRequest)
@@ -23,12 +29,11 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user schemas.Users
-	if creds.ClientId != "" {
-		if err := config.DB.Where("client_id = ?", creds.ClientId).First(&user).Error; err == nil {
+	if cookieValue != "" {
+		if err := config.DB.Where("client_id = ?", cookieValue).First(&user).Error; err == nil {
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]string{
-				"message":   "Login Successful!",
-				"client_id": user.ClientId.String(),
+			json.NewEncoder(w).Encode(map[string]any{
+				"message": "Login Successful!",
 			})
 			return
 		}
@@ -39,7 +44,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
 	if err != nil {
 		http.Error(w, "Wrong password", http.StatusUnauthorized)
 		return
@@ -55,6 +60,15 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "client_id",
+		Value:    newClientId.String(),
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   false,
+	})
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{

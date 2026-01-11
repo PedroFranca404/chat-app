@@ -1,7 +1,6 @@
 backend/chat-app
 backend/go.sum
 frontend/node_modules
-
 frontend/logs
 frontend/*.log
 frontend/npm-debug.log*
@@ -22,3 +21,4 @@ frontend/*.ntvs*
 frontend/*.njsproj
 frontend/*.sln
 frontend/*.sw?
+.env

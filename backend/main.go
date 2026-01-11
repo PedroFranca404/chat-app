@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/PedroFranca404/chat-app/Auth"
+	auth "github.com/PedroFranca404/chat-app/Auth"
 	"github.com/PedroFranca404/chat-app/config"
 )
 
