@@ -23,7 +23,7 @@ export const HandleLogin = async (username: string , password: string) => {
   }
 }
 
-export const handleRegister = async (username: string , password: string) => {
+export const handleRegister = async (username: string, password: string) => {
   try {
     await api.post("/register", {
       Username: username,
