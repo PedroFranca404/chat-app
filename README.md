@@ -78,6 +78,7 @@ Follow these steps to set up the project locally.
 
 ### Prerequisites
 
+*   Golang
 *   Node.js (v14 or higher)
 *   npm
 *   A Postgres database hosted on Prisma
@@ -139,7 +140,7 @@ Contributions are what make the open-source community such an amazing place to l
 
 ## Authors
 
-*   **Pedro Franca** - *Designer/Developer* - [PedroFrança404](https://github.com/PedroFranca404)
+*   **Pedro França** - *Designer/Developer* - [PedroFranca404](https://github.com/PedroFranca404)
 *   **Luís Almeida** - *Designer/Developer* - [Luís605](https://github.com/luis605)
 
 ---
