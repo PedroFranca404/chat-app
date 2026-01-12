@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	auth "github.com/PedroFranca404/chat-app/Auth"
+	api "github.com/PedroFranca404/chat-app/api"
 	"github.com/PedroFranca404/chat-app/config"
 )
 
@@ -17,9 +17,9 @@ func main() {
 		log.Fatal("Database is DOWN")
 	}
 
-	hub := auth.NewHub()
+	hub := api.NewHub()
 	go hub.Run()
 
 	fmt.Println("Starting Chat App Server...")
-	auth.StartServer(hub)
+	api.StartServer(hub)
 }

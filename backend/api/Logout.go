@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func handleLogout(w http.ResponseWriter, r *http.Request) {
+func HandleLogout(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "client_id",
 		Value:    "",

@@ -15,7 +15,7 @@ type SendMessageRequest struct {
 	Content        string `json:"content"`
 }
 
-func handleSendMessage(w http.ResponseWriter, r *http.Request) {
+func HandleSendMessage(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -49,7 +49,7 @@ func handleSendMessage(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(msg)
 }
 
-func handleGetMessages(w http.ResponseWriter, r *http.Request) {
+func HandleGetMessages(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
