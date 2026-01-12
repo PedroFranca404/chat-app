@@ -4,13 +4,16 @@ import {
   Send,
   Hash,
   Search,
-  Settings,
   CheckCheck,
   LogOut,
   Code,
   Users,
+  Heart,
+  CircleUserRound,
+  MoreVertical,
 } from "lucide-react";
 import { handleLogout, ValidateUser } from "../services/Auth";
+import { SettingsComponent } from "../components/settings";
 
 type UserStatus = "online" | "busy" | "offline" | string;
 type ViewType = "chat" | "friends";
@@ -223,6 +226,18 @@ function RouteComponent() {
             </button>
           ))}
         </div>
+        <div className="p-4 border-t border-white/5 bg-zinc-900/30">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-linear-to-tr from-indigo-500 to-purple-500 border border-white/10" />
+            <div className="flex-1">
+              <div className="text-sm text-white font-medium">Me</div>
+              <div className="text-[10px] text-emerald-500 font-mono">
+                ● Online
+              </div>
+            </div>
+            <SettingsComponent />
+          </div>
+        </div>
       </aside>
 
       {currentView === "friends" ? (
@@ -235,8 +250,8 @@ function RouteComponent() {
               Friends List
             </h2>
             <p className="max-w-md text-center text-sm mb-8">
-              Here you can manage your friends, see pending requests, or find new
-              people to connect with.
+              Here you can manage your friends, see pending requests, or find
+              new people to connect with.
             </p>
 
             <div className="grid grid-cols-1 gap-3 w-96">
@@ -258,18 +273,28 @@ function RouteComponent() {
       ) : activeUser ? (
         <>
           <main className="flex-1 flex flex-col relative bg-[#050505]">
-            <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 z-20 bg-zinc-900/40 backdrop-blur-md">
-              <div className="flex items-center gap-4">
-                <div className="text-lg font-medium text-white">
-                  {activeUser.name}
+            {/* CHAT HEADER */}
+            <div className="sticky top-0 z-20 px-4 pt-4 bg-[#050505]">
+              <div className="h-16 bg-zinc-900/60 backdrop-blur-xl border border-white/5 rounded-2xl flex items-center justify-between px-6 shadow-lg">
+                <div className="flex items-center gap-4">
+                  <div className="text-lg font-medium text-white">
+                    {activeUser.name}
+                  </div>
+                  <div className="px-2 py-0.5 rounded-full bg-white/5 border border-white/5 text-[10px] font-mono text-zinc-400">
+                    {activeUser.isGroup ? "GROUP" : "DM"}
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-4 text-zinc-400">
-                <Settings className="w-5 h-5 hover:text-white cursor-pointer transition-colors" />
+
+                <div className="flex items-center gap-4 text-zinc-400">
+                  <Heart className="w-5 h-5 hover:text-indigo-400 cursor-pointer transition-colors" />
+                  <CircleUserRound className="w-5 h-5 hover:text-indigo-400 cursor-pointer transition-colors" />
+                  <MoreVertical className="w-5 h-5 hover:text-white cursor-pointer transition-colors" />
+                </div>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-6">
+            {/* MESSAGES */}
+            <div className="flex-1 overflow-y-auto px-4 py-6 no-scrollbar">
               {currentMessages.map((msg) => {
                 const isMe = msg.sender === "me";
                 return (
@@ -281,7 +306,11 @@ function RouteComponent() {
                       className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
                     >
                       <div
-                        className={`px-6 py-3.5 rounded-2xl text-sm ${isMe ? "bg-zinc-800/50 border border-indigo-500/20 text-indigo-50" : "bg-zinc-900 border border-zinc-800 text-zinc-300"}`}
+                        className={`px-6 py-3.5 rounded-2xl text-sm ${
+                          isMe
+                            ? "bg-zinc-800/50 border border-indigo-500/20 text-indigo-50"
+                            : "bg-zinc-900 border border-zinc-800 text-zinc-300"
+                        }`}
                       >
                         {msg.text}
                       </div>
@@ -305,7 +334,8 @@ function RouteComponent() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4">
+            {/* INPUT */}
+            <div className="p-4 border-t border-white/5 bg-[#050505]">
               <form
                 onSubmit={handleSendMessage}
                 className="flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-2 px-4"
@@ -359,7 +389,7 @@ function RouteComponent() {
               </div>
             </div>
 
-            <div className="p-6 flex-1 overflow-y-auto">
+            <div className="p-6 flex-1 overflow-y-auto no-scrollbar">
               {/* Properties */}
               <h3 className="text-[10px] font-mono uppercase text-zinc-600 mb-4 tracking-widest">
                 Properties
