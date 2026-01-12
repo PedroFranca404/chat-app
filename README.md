@@ -36,7 +36,7 @@ We chose this project because we believe communication should be accessible, pri
 ## Screenshots
 
 <div align="center">
-  <img src="https://via.placeholder.com/800x400?text=App+Screenshot+1" alt="Login" width="700">
+  <img src="./docs/images/login_screenshot.webp" alt="Login" width="700">
   <br><br>
   <img src="https://via.placeholder.com/800x400?text=App+View" alt="Main Viewport" width="300">
 </div>
