@@ -230,9 +230,17 @@ function RouteComponent() {
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-linear-to-tr from-indigo-500 to-purple-500 border border-white/10" />
             <div className="flex-1">
-              <div className="text-sm text-white font-medium">Me</div>
+              <div className="text-sm text-white font-medium">My username</div>
               <div className="text-[10px] text-emerald-500 font-mono">
-                ● Online
+              <button
+                className="w-full flex items-center gap-2 py-0 rounded-lg text-sm transition text-zinc-300 cursor-default"
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full bg-emerald-500`}
+                />
+                <span className="flex-1 text-left text-[10px] font-mono">Online</span>
+              </button>
+
               </div>
             </div>
             <SettingsComponent />
