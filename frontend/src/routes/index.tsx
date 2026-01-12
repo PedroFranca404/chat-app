@@ -136,9 +136,9 @@ function RouteComponent() {
   if (currentView === "chat" && !activeUser) return null;
 
   return (
-    <div className="flex h-screen w-full bg-[#050505] text-zinc-200 font-sans overflow-hidden">
+    <div className="flex h-screen w-full bg-[#050505] text-zinc-200 font-sans">
       {/* LEFT SIDEBAR */}
-      <aside className="w-80 flex flex-col border-r border-white/5 bg-zinc-900/20 backdrop-blur-md">
+      <aside className="w-80 flex flex-col border-r border-white/5 bg-zinc-900/20 backdrop-blur-md relative z-50">
         <div className="p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
@@ -343,7 +343,7 @@ function RouteComponent() {
                 <input
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  className="flex-1 bg-transparent border-none focus:outline-hidden text-zinc-200"
+                  className="flex-1 bg-transparent border-none focus:outline-hidden text-zinc-200 h-8"
                   placeholder="Write a message..."
                 />
                 <button

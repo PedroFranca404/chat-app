@@ -25,6 +25,8 @@ export const SettingsComponent = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const [status, setStatus] = useState<UserStatus>("online");
+  const leaveTimer = useRef<number | null>(null);
+  const countdown_ms = 70; // I decided to add this timer so that the popup doesn't exit due to poor mouse movement
 
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +43,7 @@ export const SettingsComponent = () => {
   }, []);
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative h-13 flex items-center justify-center" ref={menuRef}>
       {/* BUTTON */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
@@ -59,9 +61,19 @@ export const SettingsComponent = () => {
             {/* STATUS ITEM */}
             <div
               className="relative"
-              onMouseEnter={() => setIsStatusOpen(true)}
-              onMouseLeave={() => setIsStatusOpen(false)}
-            >
+              onMouseEnter={() => {
+                if (leaveTimer.current !== null) {
+                  clearTimeout(leaveTimer.current);
+                  leaveTimer.current = null;
+                }
+                setIsStatusOpen(true);
+              }}
+              onMouseLeave={() => {
+                leaveTimer.current = window.setTimeout(() => {
+                  setIsStatusOpen(false);
+                }, countdown_ms);
+              }}
+              >
               <MenuItem
                 icon={
                   <span
@@ -76,7 +88,7 @@ export const SettingsComponent = () => {
 
               {/* STATUS SUBMENU */}
               {isStatusOpen && (
-                <div className="absolutew top-0 left-full mr-2 w-56 rounded-2xl bg-zinc-900/90 backdrop-blur-xl border border-white/10 shadow-2xl p-2 animate-in fade-in slide-in-from-right-2 duration-150">
+                <div className="absolute translate-y-1/2 bottom-1 ml-4 left-full mr-2 w-56 rounded-2xl bg-zinc-900/100 border border-white/10 shadow-2xl p-2 animate-in fade-in slide-in-from-right-2 duration-150">
                   {STATUS_OPTIONS.map((s) => {
                     const isActive = status === s.value;
 
@@ -85,8 +97,6 @@ export const SettingsComponent = () => {
                         key={s.value}
                         onClick={() => {
                           setStatus(s.value);
-                          setIsStatusOpen(false);
-                          setIsOpen(false);
                         }}
                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition
                           ${
