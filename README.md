@@ -81,7 +81,7 @@ Follow these steps to set up the project locally.
 *   Golang
 *   Node.js (v14 or higher)
 *   npm
-*   A Postgres database hosted on Prisma
+*   A Postgres database 
 
 ### Installation
 
