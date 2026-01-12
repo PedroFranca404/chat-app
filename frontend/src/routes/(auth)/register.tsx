@@ -24,19 +24,19 @@ function RouteComponent() {
 
   const submitForm = async () => {
     if (username == "" || password == "" || confirmPassword == "") {
-      setFormError("Please fill all the inputs");
+      setFormError("You missed a spot! Just fill all fields and you're good to go.");
       return;
     }
     if (password != confirmPassword) {
-      setFormError("Passwords do not match");
+      setFormError("It's a mismatch! Your passwords are having a disagreement.");
       return;
     }
     setFormError("");
     try {
-      await handleRegister(username, password); // <--- aguarda o registro
-      navigate({ to: "/" }); // <--- só navega depois que o registro terminar
+      await handleRegister(username, password);
+      navigate({ to: "/" });
     } catch (e: any) {
-      setFormError(e.response?.data?.message || "Registration failed");
+      setFormError(e.message || "The hamsters running our servers took a break. Try again in a second.");
     }
   };
 
@@ -124,7 +124,7 @@ function RouteComponent() {
         <div className="flex justify-center m-5">
           <p>
             Already have an account?{" "}
-            <a href="register" className="text-indigo-400">
+            <a href="login" className="text-indigo-400">
               Login here.
             </a>
           </p>

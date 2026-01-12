@@ -31,8 +31,8 @@ function RouteComponent() {
       await HandleLogin(username, password);
       navigate({to:"/"})
     } catch (e: any) {
-    setFormError(e.response?.data?.message || "Registration failed");
-  }
+      setFormError(e.message || "Login failed");
+    }
   };
 
   return (

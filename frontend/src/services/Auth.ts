@@ -18,8 +18,14 @@ export const HandleLogin = async (username: string , password: string) => {
     {
       withCredentials: true,
     })
-  } catch (e) {
-    console.log(e)
+  } catch (e: any) {
+    if (e.code === "ERR_NETWORK") {
+      throw new Error("Oops. Either your servers took a break or you're offline.");
+    }
+    if (e.response?.status === 401) {
+      throw new Error("Knock knock. Who's there? Not the right password, apparently");
+    }
+    throw new Error(e.response?.data?.message || "The hamsters running our servers took a break. Try again in a second.");
   }
 }
 
@@ -32,8 +38,15 @@ export const handleRegister = async (username: string, password: string) => {
     {
       withCredentials: true,
     })
-  } catch (e) {
-    console.log(e)
+  } catch (e: any) {
+    if (e.code === "ERR_NETWORK") {
+      throw new Error("Oops. Either your servers took a break or you're offline.");
+    }
+    const errorMsg = e.response?.data?.toLowerCase?.() || "";
+    if (e.response?.status === 409 || errorMsg.includes("duplicate") || errorMsg.includes("unique")) {
+      throw new Error("Ups. The username already exists.");
+    }
+    throw new Error(e.response?.data?.message || "The hamsters running our servers took a break. Try again in a second.");
   }
 }
 
