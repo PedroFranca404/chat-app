@@ -4,13 +4,21 @@ import {
   Send,
   Hash,
   Search,
-  Settings,
   CheckCheck,
   LogOut,
   Code,
   Users,
+  Heart,
+  CircleUserRound,
+  MoreVertical,
+  UserPlus,
+  X,
+  Check,
+  Loader2,
 } from "lucide-react";
 import { handleLogout, ValidateUser } from "../services/Auth";
+import { SettingsComponent } from "../components/settings";
+import { handleGetFriends, handleSendFriendRequest, handleGetFriendRequests, handleAcceptFriendRequest, handleRejectFriendRequest, Friend, FriendRequest } from "../services/Friends";
 
 type UserStatus = "online" | "busy" | "offline" | string;
 type ViewType = "chat" | "friends";
@@ -90,6 +98,15 @@ function RouteComponent() {
   const [inputText, setInputText] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [friendSearchQuery, setFriendSearchQuery] = useState<string>("");
+  const [isAddingFriend, setIsAddingFriend] = useState<boolean>(false);
+  const [friendError, setFriendError] = useState<string>("");
+  const [friendSuccess, setFriendSuccess] = useState<string>("");
+  const [isLoadingFriends, setIsLoadingFriends] = useState<boolean>(false);
+  const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
+  const [isLoadingRequests, setIsLoadingRequests] = useState<boolean>(false);
+
   const onLogout = () => {
     handleLogout();
     navigate({ to: "/login" });
@@ -107,6 +124,68 @@ function RouteComponent() {
       scrollToBottom();
     }
   }, [currentMessages, activeChat, currentView]);
+
+  useEffect(() => {
+    if (currentView === "friends") {
+      const loadFriendsData = async () => {
+        setIsLoadingFriends(true);
+        setIsLoadingRequests(true);
+        try {
+          const [friendsList, requestsList] = await Promise.all([
+            handleGetFriends(),
+            handleGetFriendRequests(),
+          ]);
+          setFriends(friendsList);
+          setPendingRequests(requestsList);
+        } catch (err) {
+          console.error("Failed to load friends data:", err);
+        } finally {
+          setIsLoadingFriends(false);
+          setIsLoadingRequests(false);
+        }
+      };
+      loadFriendsData();
+    }
+  }, [currentView]);
+
+  const handleAddFriendSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!friendSearchQuery.trim()) return;
+
+    setIsAddingFriend(true);
+    setFriendError("");
+    setFriendSuccess("");
+
+    try {
+      await handleSendFriendRequest(friendSearchQuery.trim());
+      setFriendSuccess(`Friend request sent to ${friendSearchQuery.trim()}!`);
+      setFriendSearchQuery("");
+    } catch (err: any) {
+      setFriendError(err.message || "Failed to send friend request");
+    } finally {
+      setIsAddingFriend(false);
+    }
+  };
+
+  const handleAccept = async (requestId: string) => {
+    try {
+      await handleAcceptFriendRequest(requestId);
+      setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+      const friendsList = await handleGetFriends();
+      setFriends(friendsList);
+    } catch (err: any) {
+      setFriendError(err.message || "Failed to accept request");
+    }
+  };
+
+  const handleReject = async (requestId: string) => {
+    try {
+      await handleRejectFriendRequest(requestId);
+      setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+    } catch (err: any) {
+      setFriendError(err.message || "Failed to reject request");
+    }
+  };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,9 +212,9 @@ function RouteComponent() {
   if (currentView === "chat" && !activeUser) return null;
 
   return (
-    <div className="flex h-screen w-full bg-[#050505] text-zinc-200 font-sans overflow-hidden">
+    <div className="flex h-screen w-full bg-[#050505] text-zinc-200 font-sans">
       {/* LEFT SIDEBAR */}
-      <aside className="w-80 flex flex-col border-r border-white/5 bg-zinc-900/20 backdrop-blur-md">
+      <aside className="w-80 flex flex-col border-r border-white/5 bg-zinc-900/20 backdrop-blur-md relative z-50">
         <div className="p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold">
@@ -223,11 +302,32 @@ function RouteComponent() {
             </button>
           ))}
         </div>
+        <div className="p-4 border-t border-white/5 bg-zinc-900/30">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-linear-to-tr from-indigo-500 to-purple-500 border border-white/10" />
+            <div className="flex-1">
+              <div className="text-sm text-white font-medium">My username</div>
+              <div className="text-[10px] text-emerald-500 font-mono">
+              <button
+                className="w-full flex items-center gap-2 py-0 rounded-lg text-sm transition text-zinc-300 cursor-default"
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full bg-emerald-500`}
+                />
+                <span className="flex-1 text-left text-[10px] font-mono">Online</span>
+              </button>
+
+              </div>
+            </div>
+            <SettingsComponent />
+          </div>
+        </div>
       </aside>
 
       {currentView === "friends" ? (
-        <main className="flex-1 flex flex-col items-center justify-center bg-[#050505] relative animate-in fade-in duration-300">
-          <div className="flex flex-col items-center text-zinc-500">
+        <main className="flex-1 flex flex-col bg-[#050505] relative animate-in fade-in duration-300 overflow-y-auto">
+          <div className="flex flex-col items-center text-zinc-500 p-8 max-w-2xl mx-auto w-full">
+            {/* Header */}
             <div className="w-24 h-24 rounded-3xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6">
               <Users size={40} className="text-indigo-500" />
             </div>
@@ -235,41 +335,173 @@ function RouteComponent() {
               Friends List
             </h2>
             <p className="max-w-md text-center text-sm mb-8">
-              Here you can manage your friends, see pending requests, or find new
-              people to connect with.
+              Here you can manage your friends, see pending requests, or find
+              new people to connect with.
             </p>
 
-            <div className="grid grid-cols-1 gap-3 w-96">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-4 p-3 rounded-xl bg-zinc-900/50 border border-zinc-800"
+            {/* Search / Add Friend Box */}
+            <form onSubmit={handleAddFriendSubmit} className="w-full max-w-md mb-8">
+              <div className="relative group">
+                <UserPlus className="absolute left-3 top-3 text-zinc-600 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Enter username to add..."
+                  value={friendSearchQuery}
+                  onChange={(e) => setFriendSearchQuery(e.target.value)}
+                  className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-3 pl-11 pr-24 text-sm focus:outline-none focus:border-indigo-500/50 transition-all text-white placeholder:text-zinc-600"
+                />
+                <button
+                  type="submit"
+                  disabled={isAddingFriend || !friendSearchQuery.trim()}
+                  className="absolute right-2 top-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-700 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
                 >
-                  <div className="w-10 h-10 rounded-full bg-zinc-800 animate-pulse" />
-                  <div className="space-y-2 flex-1">
-                    <div className="h-3 w-24 bg-zinc-800 rounded-full animate-pulse" />
-                    <div className="h-2 w-16 bg-zinc-800/50 rounded-full animate-pulse" />
-                  </div>
+                  {isAddingFriend ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <>
+                      <UserPlus size={14} />
+                      Add
+                    </>
+                  )}
+                </button>
+              </div>
+              {/* Error / Success Messages */}
+              {friendError && (
+                <div className="mt-2 text-sm text-red-400 flex items-center gap-2">
+                  <X size={14} />
+                  {friendError}
                 </div>
-              ))}
+              )}
+              {friendSuccess && (
+                <div className="mt-2 text-sm text-emerald-400 flex items-center gap-2">
+                  <Check size={14} />
+                  {friendSuccess}
+                </div>
+              )}
+            </form>
+
+            {/* Pending Friend Requests */}
+            {pendingRequests.length > 0 && (
+              <div className="w-full max-w-md mb-8">
+                <h3 className="text-[10px] font-mono uppercase text-zinc-600 mb-3 tracking-widest">
+                  Friend Requests ({pendingRequests.length})
+                </h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {pendingRequests.map((request) => (
+                    <div
+                      key={request.id}
+                      className="flex items-center gap-4 p-3 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-orange-500 to-pink-500 flex items-center justify-center text-white font-semibold text-sm">
+                        {request.sender_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-white">
+                          {request.sender_name}
+                        </div>
+                        <div className="text-xs text-zinc-600 font-mono">
+                          wants to be friends
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleAccept(request.id)}
+                          className="p-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-colors"
+                          title="Accept"
+                        >
+                          <Check size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleReject(request.id)}
+                          className="p-2 rounded-lg bg-zinc-700 hover:bg-red-600 text-white transition-colors"
+                          title="Reject"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Friends List */}
+            <div className="w-full max-w-md">
+              <h3 className="text-[10px] font-mono uppercase text-zinc-600 mb-3 tracking-widest">
+                Your Friends ({friends.length})
+              </h3>
+              <div className="grid grid-cols-1 gap-3">
+                {isLoadingFriends ? (
+                  [1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-4 p-3 rounded-xl bg-zinc-900/50 border border-zinc-800"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-zinc-800 animate-pulse" />
+                      <div className="space-y-2 flex-1">
+                        <div className="h-3 w-24 bg-zinc-800 rounded-full animate-pulse" />
+                        <div className="h-2 w-16 bg-zinc-800/50 rounded-full animate-pulse" />
+                      </div>
+                    </div>
+                  ))
+                ) : friends.length === 0 ? (
+                  <div className="text-center py-8 text-zinc-600">
+                    <Users size={32} className="mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">No friends yet</p>
+                    <p className="text-xs mt-1">Add someone using the search box above!</p>
+                  </div>
+                ) : (
+                  friends.map((friend) => (
+                    <div
+                      key={friend.id}
+                      className="flex items-center gap-4 p-3 rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors cursor-pointer group"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-semibold text-sm">
+                        {friend.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-white group-hover:text-indigo-400 transition-colors">
+                          {friend.name}
+                        </div>
+                        <div className="text-xs text-zinc-600 font-mono">
+                          @{friend.name.toLowerCase().replace(/\s+/g, "")}
+                        </div>
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-xs text-zinc-500">Chat →</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </main>
       ) : activeUser ? (
         <>
           <main className="flex-1 flex flex-col relative bg-[#050505]">
-            <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 z-20 bg-zinc-900/40 backdrop-blur-md">
-              <div className="flex items-center gap-4">
-                <div className="text-lg font-medium text-white">
-                  {activeUser.name}
+            {/* CHAT HEADER */}
+            <div className="sticky top-0 z-20 px-4 pt-4 bg-[#050505]">
+              <div className="h-16 bg-zinc-900/60 backdrop-blur-xl border border-white/5 rounded-2xl flex items-center justify-between px-6 shadow-lg">
+                <div className="flex items-center gap-4">
+                  <div className="text-lg font-medium text-white">
+                    {activeUser.name}
+                  </div>
+                  <div className="px-2 py-0.5 rounded-full bg-white/5 border border-white/5 text-[10px] font-mono text-zinc-400">
+                    {activeUser.isGroup ? "GROUP" : "DM"}
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-4 text-zinc-400">
-                <Settings className="w-5 h-5 hover:text-white cursor-pointer transition-colors" />
+
+                <div className="flex items-center gap-4 text-zinc-400">
+                  <Heart className="w-5 h-5 hover:text-indigo-400 cursor-pointer transition-colors" />
+                  <CircleUserRound className="w-5 h-5 hover:text-indigo-400 cursor-pointer transition-colors" />
+                  <MoreVertical className="w-5 h-5 hover:text-white cursor-pointer transition-colors" />
+                </div>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-6">
+            {/* MESSAGES */}
+            <div className="flex-1 overflow-y-auto px-4 py-6 no-scrollbar">
               {currentMessages.map((msg) => {
                 const isMe = msg.sender === "me";
                 return (
@@ -281,7 +513,11 @@ function RouteComponent() {
                       className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
                     >
                       <div
-                        className={`px-6 py-3.5 rounded-2xl text-sm ${isMe ? "bg-zinc-800/50 border border-indigo-500/20 text-indigo-50" : "bg-zinc-900 border border-zinc-800 text-zinc-300"}`}
+                        className={`px-6 py-3.5 rounded-2xl text-sm ${
+                          isMe
+                            ? "bg-zinc-800/50 border border-indigo-500/20 text-indigo-50"
+                            : "bg-zinc-900 border border-zinc-800 text-zinc-300"
+                        }`}
                       >
                         {msg.text}
                       </div>
@@ -305,7 +541,8 @@ function RouteComponent() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4">
+            {/* INPUT */}
+            <div className="p-4 border-t border-white/5 bg-[#050505]">
               <form
                 onSubmit={handleSendMessage}
                 className="flex items-center gap-2 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-2 px-4"
@@ -313,7 +550,7 @@ function RouteComponent() {
                 <input
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  className="flex-1 bg-transparent border-none focus:outline-hidden text-zinc-200"
+                  className="flex-1 bg-transparent border-none focus:outline-hidden text-zinc-200 h-8"
                   placeholder="Write a message..."
                 />
                 <button
@@ -359,7 +596,7 @@ function RouteComponent() {
               </div>
             </div>
 
-            <div className="p-6 flex-1 overflow-y-auto">
+            <div className="p-6 flex-1 overflow-y-auto no-scrollbar">
               {/* Properties */}
               <h3 className="text-[10px] font-mono uppercase text-zinc-600 mb-4 tracking-widest">
                 Properties

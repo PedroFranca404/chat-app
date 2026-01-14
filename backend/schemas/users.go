@@ -13,6 +13,13 @@ type Friends struct {
 	CreatedAt time.Time
 }
 
+type FriendRequests struct {
+	Id         uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
+	SenderId   uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_sender_receiver;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	ReceiverId uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_sender_receiver;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	CreatedAt  time.Time
+}
+
 type Users struct {
 	Id        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Name      string    `gorm:"unique;not null"`

@@ -14,7 +14,10 @@ func StartServer(hub *Hub) {
 	http.HandleFunc("/login", HandleLogin)
 	http.HandleFunc("/logout", HandleLogout)
 	http.HandleFunc("/get_friends", HandleGetFriends)
-	http.HandleFunc("/add_friend", HandleAddFriend)
+	http.HandleFunc("/send_friend_request", HandleSendFriendRequest)
+	http.HandleFunc("/get_friend_requests", HandleGetFriendRequests)
+	http.HandleFunc("/accept_friend_request", HandleAcceptFriendRequest)
+	http.HandleFunc("/reject_friend_request", HandleRejectFriendRequest)
 	http.HandleFunc("/send_message", HandleSendMessage)
 	http.HandleFunc("/get_messages", HandleGetMessages)
 
