@@ -24,7 +24,7 @@ func Init() {
 		log.Fatal("Failed to connect to database: ", err)
 	}
 
-	DB.AutoMigrate(&schemas.Users{})
+	DB.AutoMigrate(&schemas.Users{}, &schemas.FriendRequests{})
 }
 
 func CheckDBStatus() bool {
