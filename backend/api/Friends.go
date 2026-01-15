@@ -1,12 +1,12 @@
-package auth
+package api
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/PedroFranca404/chat-app/config"
 	"github.com/PedroFranca404/chat-app/schemas"
+	"github.com/google/uuid"
 )
 
 func HandleGetFriends(w http.ResponseWriter, r *http.Request) {

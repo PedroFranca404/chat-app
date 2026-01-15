@@ -1,4 +1,4 @@
-package auth
+package api
 
 type Credentials struct {
 	Username string `json:"username"`
