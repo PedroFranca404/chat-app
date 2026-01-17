@@ -28,7 +28,7 @@ type Users struct {
 	Status    string
 	ClientId  uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();not null;index"`
 	CreatedAt time.Time
-	Friends   []*Users  `gorm:"many2many:friends;joinForeignKey:UserId;joinReferences:FriendId"`
+	Friends   []*Users `gorm:"many2many:friends;joinForeignKey:UserId;joinReferences:FriendId"`
 }
 
 type Conversations struct {
