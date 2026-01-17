@@ -54,3 +54,18 @@ func CreateConversation(name string, isGroup bool, userIds []uuid.UUID) (*schema
 	tx.Commit()
 	return &conv, nil
 }
+
+func GetConversations(userId uuid.UUID) ([]schemas.Conversations, error) {
+	var conversations []schemas.Conversations
+
+	err := config.DB.
+		Joins("JOIN participants ON participants.conversation_id = conversations.id").
+		Where("participants.user_id = ?", userId).
+		Find(&conversations).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return conversations, nil
+}

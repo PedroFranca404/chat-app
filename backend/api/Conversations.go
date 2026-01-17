@@ -75,3 +75,31 @@ func HandleCreateConversation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(newConv)
 }
+
+func HandleGetConversations(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	cookie, err := r.Cookie("client_id")
+	if err != nil || cookie.Value == "" {
+		http.Error(w, "Unauthorized: No session found", http.StatusUnauthorized)
+		return
+	}
+
+	var currentUser schemas.Users
+	if err := config.DB.Where("client_id = ?", cookie.Value).First(&currentUser).Error; err != nil {
+		http.Error(w, "Unauthorized: Invalid session", http.StatusUnauthorized)
+		return
+	}
+
+	conversations, err := repository.GetConversations(currentUser.Id)
+	if err != nil {
+		http.Error(w, "Failed to get conversations: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(conversations)
+}

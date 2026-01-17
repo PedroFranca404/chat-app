@@ -18,9 +18,12 @@ func StartServer(hub *Hub) {
 	http.HandleFunc("/get_friend_requests", HandleGetFriendRequests)
 	http.HandleFunc("/accept_friend_request", HandleAcceptFriendRequest)
 	http.HandleFunc("/reject_friend_request", HandleRejectFriendRequest)
-	http.HandleFunc("/send_message", HandleSendMessage)
+	http.HandleFunc("/send_message", func(w http.ResponseWriter, r *http.Request) {
+		HandleSendMessage(hub, w, r)
+	})
 	http.HandleFunc("/get_messages", HandleGetMessages)
 	http.HandleFunc("/create_conversation", HandleCreateConversation)
+	http.HandleFunc("/get_conversations", HandleGetConversations)
 
 	http.ListenAndServe(":8080", config.Cors(http.DefaultServeMux))
 }

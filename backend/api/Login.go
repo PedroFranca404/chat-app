@@ -33,10 +33,18 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		if err := config.DB.Where("client_id = ?", cookieValue).First(&user).Error; err == nil {
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(map[string]any{
-				"message": "Login Successful!",
+				"message":   "Login Successful!",
+				"client_id": user.ClientId,
+				"id":        user.Id,
+				"name":      user.Name,
 			})
 			return
 		}
+	}
+
+	if creds.Username == "" || creds.Password == "" {
+		http.Error(w, "User not found", http.StatusUnauthorized)
+		return
 	}
 
 	if err := config.DB.Where("name = ?", creds.Username).First(&user).Error; err != nil {
