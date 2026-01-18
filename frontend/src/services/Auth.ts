@@ -3,9 +3,9 @@ import { api } from "./api"
 export const ValidateUser = async () => {
   try {
     const response = await api.post("/login", {}, {withCredentials: true})
-    return response.status === 200;
+    return response.data;
   } catch {
-    return false;
+    return null;
   }
 }
 

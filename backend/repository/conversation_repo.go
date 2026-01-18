@@ -9,6 +9,16 @@ import (
 )
 
 func CreateConversation(name string, isGroup bool, userIds []uuid.UUID) (*schemas.Conversations, error) {
+	uniqueUsers := make(map[uuid.UUID]bool)
+	var cleanUserIds []uuid.UUID
+
+	for _, id := range userIds {
+		if _, exists := uniqueUsers[id]; !exists {
+			uniqueUsers[id] = true
+			cleanUserIds = append(cleanUserIds, id)
+		}
+	}
+
 	tx := config.DB.Begin()
 
 	conv := schemas.Conversations{
@@ -22,14 +32,20 @@ func CreateConversation(name string, isGroup bool, userIds []uuid.UUID) (*schema
 		return nil, err
 	}
 
-	for _, uid := range userIds {
-		participant := schemas.Participants{
+	var participants []schemas.Participants
+
+	for _, uid := range cleanUserIds {
+		participants = append(participants, schemas.Participants{
+			Id:             uuid.New(),
 			ConversationId: conv.Id,
 			UserId:         uid,
 			Role:           "member",
 			JoinedAt:       time.Now(),
-		}
-		if err := tx.Create(&participant).Error; err != nil {
+		})
+	}
+
+	if len(participants) > 0 {
+		if err := tx.Create(&participants).Error; err != nil {
 			tx.Rollback()
 			return nil, err
 		}
@@ -37,4 +53,19 @@ func CreateConversation(name string, isGroup bool, userIds []uuid.UUID) (*schema
 
 	tx.Commit()
 	return &conv, nil
+}
+
+func GetConversations(userId uuid.UUID) ([]schemas.Conversations, error) {
+	var conversations []schemas.Conversations
+
+	err := config.DB.
+		Joins("JOIN participants ON participants.conversation_id = conversations.id").
+		Where("participants.user_id = ?", userId).
+		Find(&conversations).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return conversations, nil
 }

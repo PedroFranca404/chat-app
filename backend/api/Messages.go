@@ -1,7 +1,8 @@
-package auth
+package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -15,7 +16,7 @@ type SendMessageRequest struct {
 	Content        string `json:"content"`
 }
 
-func HandleSendMessage(w http.ResponseWriter, r *http.Request) {
+func HandleSendMessage(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -23,27 +24,36 @@ func HandleSendMessage(w http.ResponseWriter, r *http.Request) {
 
 	var req SendMessageRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		fmt.Println("Error decoding body:", err)
 		http.Error(w, "Invalid body", http.StatusBadRequest)
 		return
 	}
 
+	fmt.Println("HandleSendMessage Request:", req)
+
 	user, err := ValidateUser(req.ClientId)
 	if err != nil {
+		fmt.Println("ValidateUser Error:", err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
 	conversationUUID, err := uuid.Parse(req.ConversationId)
 	if err != nil {
+		fmt.Println("UUID Parse Error:", err)
 		http.Error(w, "Invalid conversation_id", http.StatusBadRequest)
 		return
 	}
 
 	msg, err := repository.AddMessage(user.Id, conversationUUID, req.Content)
 	if err != nil {
+		fmt.Println("AddMessage Error:", err)
 		http.Error(w, "Failed to send message: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	msgBytes, _ := json.Marshal(msg)
+	hub.broadcast <- msgBytes
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(msg)
@@ -55,12 +65,17 @@ func HandleGetMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	clientId := r.URL.Query().Get("client_id")
 	conversationId := r.URL.Query().Get("conversation_id")
 	limitStr := r.URL.Query().Get("limit")
 	offsetStr := r.URL.Query().Get("offset")
 
-	_, err := ValidateUser(clientId)
+	cookie, err := r.Cookie("client_id")
+	if err != nil {
+		http.Error(w, "Unauthorized: No session found", http.StatusUnauthorized)
+		return
+	}
+
+	_, err = ValidateUser(cookie.Value)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

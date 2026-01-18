@@ -1,4 +1,4 @@
-package auth
+package api
 
 type Hub struct {
 	clients map[*Client]bool

@@ -1,4 +1,4 @@
-package auth
+package api
 
 import (
 	"encoding/json"
@@ -33,10 +33,18 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		if err := config.DB.Where("client_id = ?", cookieValue).First(&user).Error; err == nil {
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(map[string]any{
-				"message": "Login Successful!",
+				"message":   "Login Successful!",
+				"client_id": user.ClientId,
+				"id":        user.Id,
+				"name":      user.Name,
 			})
 			return
 		}
+	}
+
+	if creds.Username == "" || creds.Password == "" {
+		http.Error(w, "User not found", http.StatusUnauthorized)
+		return
 	}
 
 	if err := config.DB.Where("name = ?", creds.Username).First(&user).Error; err != nil {
@@ -50,6 +58,10 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.ClientId != uuid.Nil {
+		SessionCache.Delete(user.ClientId.String())
+	}
+
 	newClientId := uuid.New()
 
 	result := config.DB.Model(&schemas.Users{}).
@@ -60,6 +72,9 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
+
+	user.ClientId = newClientId
+	SessionCache.Set(newClientId.String(), &user)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "client_id",

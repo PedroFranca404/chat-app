@@ -4,8 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/PedroFranca404/chat-app/schemas"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -24,7 +24,7 @@ func Init() {
 		log.Fatal("Failed to connect to database: ", err)
 	}
 
-	DB.AutoMigrate(&schemas.Users{}, &schemas.FriendRequests{})
+	DB.AutoMigrate(&schemas.Users{}, &schemas.FriendRequests{}, &schemas.Conversations{}, &schemas.Participants{}, &schemas.Messages{})
 }
 
 func CheckDBStatus() bool {

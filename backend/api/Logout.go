@@ -1,4 +1,4 @@
-package auth
+package api
 
 import (
 	"encoding/json"
@@ -6,6 +6,11 @@ import (
 )
 
 func HandleLogout(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("client_id")
+	if err == nil && cookie.Value != "" {
+		SessionCache.Delete(cookie.Value)
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "client_id",
 		Value:    "",
