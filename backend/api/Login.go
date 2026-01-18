@@ -58,6 +58,10 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.ClientId != uuid.Nil {
+		SessionCache.Delete(user.ClientId.String())
+	}
+
 	newClientId := uuid.New()
 
 	result := config.DB.Model(&schemas.Users{}).
@@ -68,6 +72,9 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
+
+	user.ClientId = newClientId
+	SessionCache.Set(newClientId.String(), &user)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "client_id",

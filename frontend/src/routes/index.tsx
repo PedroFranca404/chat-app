@@ -181,15 +181,20 @@ function RouteComponent() {
   useEffect(() => {
     if (currentView === "friends") {
       const loadFriendsData = async () => {
-        setIsLoadingFriends(true);
         setIsLoadingRequests(true);
+        if (friends.length === 0) setIsLoadingFriends(true);
+
         try {
-          const [friendsList, requestsList] = await Promise.all([
-            handleGetFriends(),
-            handleGetFriendRequests(),
-          ]);
-          setFriends(friendsList);
+          // Always fetch requests as they are dynamic
+          const requestsList = await handleGetFriendRequests();
           setPendingRequests(requestsList);
+
+          // Only fetch friends if we don't have them (or force refresh logic could go here)
+          // We rely on the initial mount fetch for the base list.
+          if (friends.length === 0) {
+             const friendsList = await handleGetFriends();
+             setFriends(friendsList);
+          }
         } catch (err) {
           console.error("Failed to load friends data:", err);
         } finally {

@@ -149,6 +149,28 @@ func HandleGetFriendRequests(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	senderIds := make([]uuid.UUID, 0, len(requests))
+	uniqueSenders := make(map[uuid.UUID]bool)
+	for _, req := range requests {
+		if !uniqueSenders[req.SenderId] {
+			uniqueSenders[req.SenderId] = true
+			senderIds = append(senderIds, req.SenderId)
+		}
+	}
+
+	var senders []schemas.Users
+	if len(senderIds) > 0 {
+		if err := config.DB.Where("id IN ?", senderIds).Find(&senders).Error; err != nil {
+			http.Error(w, "Error fetching sender details", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	senderMap := make(map[uuid.UUID]string)
+	for _, sender := range senders {
+		senderMap[sender.Id] = sender.Name
+	}
+
 	type RequestResponse struct {
 		Id         string `json:"id"`
 		SenderId   string `json:"sender_id"`
@@ -157,14 +179,14 @@ func HandleGetFriendRequests(w http.ResponseWriter, r *http.Request) {
 
 	var response []RequestResponse
 	for _, req := range requests {
-		var sender schemas.Users
-		if err := config.DB.Where("id = ?", req.SenderId).First(&sender).Error; err != nil {
-			continue
+		name, ok := senderMap[req.SenderId]
+		if !ok {
+			name = "Unknown User"
 		}
 		response = append(response, RequestResponse{
 			Id:         req.Id.String(),
 			SenderId:   req.SenderId.String(),
-			SenderName: sender.Name,
+			SenderName: name,
 		})
 	}
 
