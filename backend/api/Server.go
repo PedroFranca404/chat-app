@@ -6,6 +6,8 @@ import (
 	"github.com/PedroFranca404/chat-app/config"
 )
 
+const PORT = os.Getenv("PORT") || ":8080"
+
 func StartServer(hub *Hub) {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		ServeWs(hub, w, r)
@@ -25,5 +27,5 @@ func StartServer(hub *Hub) {
 	http.HandleFunc("/create_conversation", HandleCreateConversation)
 	http.HandleFunc("/get_conversations", HandleGetConversations)
 
-	http.ListenAndServe(":8080", config.Cors(http.DefaultServeMux))
+	http.ListenAndServe(PORT, config.Cors(http.DefaultServeMux))
 }
