@@ -37,7 +37,7 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		Value:    user.ClientId.String(),
 		Path:     "/",
 		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 	})
 

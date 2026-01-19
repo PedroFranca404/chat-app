@@ -81,7 +81,7 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		Value:    newClientId.String(),
 		Path:     "/",
 		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 	})
 
