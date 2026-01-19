@@ -13,11 +13,8 @@ import (
 var DB *gorm.DB
 
 func Init() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Println("Error loading .env file")
-	}
-
+	_ := godotenv.Load(".env")
+	
 	dsn := os.Getenv("DATABASE_URL")
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
