@@ -2,22 +2,22 @@ import { api } from "./api"
 
 export const ValidateUser = async () => {
   try {
-    const response = await api.post("/login", {}, {withCredentials: true})
+    const response = await api.post("/login", {}, { withCredentials: true })
     return response.data;
   } catch {
     return null;
   }
 }
 
-export const HandleLogin = async (username: string , password: string) => {
+export const HandleLogin = async (username: string, password: string) => {
   try {
     await api.post("/login", {
       Username: username,
       Password: password,
     },
-    {
-      withCredentials: true,
-    })
+      {
+        withCredentials: true,
+      })
   } catch (e: any) {
     if (e.code === "ERR_NETWORK") {
       throw new Error("Oops. Either your servers took a break or you're offline.");
@@ -35,9 +35,9 @@ export const handleRegister = async (username: string, password: string) => {
       Username: username,
       Password: password,
     },
-    {
-      withCredentials: true,
-    })
+      {
+        withCredentials: true,
+      })
   } catch (e: any) {
     if (e.code === "ERR_NETWORK") {
       throw new Error("Oops. Either your servers took a break or you're offline.");
@@ -52,7 +52,7 @@ export const handleRegister = async (username: string, password: string) => {
 
 export const handleLogout = async () => {
   try {
-    await api.post("/logout", {}, {withCredentials: true})
+    await api.post("/logout", {}, { withCredentials: true })
   } catch (e) {
     console.log(e)
   }

@@ -55,6 +55,7 @@ export const Route = createFileRoute("/")({
 function RouteComponent() {
   const navigate = useNavigate();
   const { user: currentUser } = Route.useLoaderData();
+  const wsBaseUrl = import.meta.env.VITE_WS_URL;
 
   const [currentView, setCurrentView] = useState<ViewType>("chat");
   const [activeChat, setActiveChat] = useState<string | null>(null);
@@ -87,55 +88,54 @@ function RouteComponent() {
   };
 
   const activeConversation = conversations.find(c => c.id === activeChat);
-    useEffect(() => {
-      if (!currentUser) return;
+  useEffect(() => {
+    if (!currentUser) return;
 
-      let ws: WebSocket | null = null;
-      const timer = setTimeout(() => {
-          const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-          const wsUrl = `${protocol}//localhost:8080/ws?client_id=${currentUser.client_id}`;
+    let ws: WebSocket | null = null;
+    const timer = setTimeout(() => {
+      const wsUrl = `${wsBaseUrl}?client_id=${currentUser.client_id}`;
 
-          ws = new WebSocket(wsUrl);
+      ws = new WebSocket(wsUrl);
 
-          ws.onopen = () => {
-            console.log("Connected to WebSocket");
+      ws.onopen = () => {
+        console.log("Connected to WebSocket");
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg: Message = JSON.parse(event.data);
+          const mappedMsg: MessageUI = {
+            id: msg.id,
+            text: msg.content,
+            sender: msg.sender_id === currentUser.id ? "me" : msg.sender_id,
+            time: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            read: true
           };
 
-          ws.onmessage = (event) => {
-            try {
-              const msg: Message = JSON.parse(event.data);
-              const mappedMsg: MessageUI = {
-                 id: msg.id,
-                 text: msg.content,
-                 sender: msg.sender_id === currentUser.id ? "me" : msg.sender_id,
-                 time: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                 read: true
-              };
-
-              setMessages(prev => {
-                const chatMsgs = prev[msg.conversation_id] || [];
-                 if (msg.sender_id === currentUser.id) {
-                     return { ...prev, [msg.conversation_id]: [...chatMsgs, mappedMsg] };
-                 }
-                 return { ...prev, [msg.conversation_id]: [...chatMsgs, mappedMsg] };
-              });
-            } catch (e) {
-              console.error("WS Message Error", e);
+          setMessages(prev => {
+            const chatMsgs = prev[msg.conversation_id] || [];
+            if (msg.sender_id === currentUser.id) {
+              return { ...prev, [msg.conversation_id]: [...chatMsgs, mappedMsg] };
             }
-          };
-
-          ws.onclose = () => {
-            console.log("Disconnected from WebSocket");
-          };
-      }, 50);
-
-      return () => {
-        clearTimeout(timer);
-        if (ws) {
-            ws.close();
+            return { ...prev, [msg.conversation_id]: [...chatMsgs, mappedMsg] };
+          });
+        } catch (e) {
+          console.error("WS Message Error", e);
         }
       };
-    }, [currentUser]);
+
+      ws.onclose = () => {
+        console.log("Disconnected from WebSocket");
+      };
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+      if (ws) {
+        ws.close();
+      }
+    };
+  }, [currentUser]);
 
   useEffect(() => {
     if (activeChat) {
@@ -192,8 +192,8 @@ function RouteComponent() {
           // Only fetch friends if we don't have them (or force refresh logic could go here)
           // We rely on the initial mount fetch for the base list.
           if (friends.length === 0) {
-             const friendsList = await handleGetFriends();
-             setFriends(friendsList);
+            const friendsList = await handleGetFriends();
+            setFriends(friendsList);
           }
         } catch (err) {
           console.error("Failed to load friends data:", err);
@@ -305,13 +305,13 @@ function RouteComponent() {
 
   const getDisplayInfo = (conv: Conversation) => {
     if (conv.participants && conv.participants.length > 0) {
-       if (conv.is_group) return { name: conv.name, isGroup: true };
+      if (conv.is_group) return { name: conv.name, isGroup: true };
 
-       const other = conv.participants.find(p => p.user_id !== (currentUser as any).id);
-       if (other) {
-         const friend = friends.find(f => f.id === other.user_id);
-         return { name: friend ? friend.name : "Unknown User", isGroup: false };
-       }
+      const other = conv.participants.find(p => p.user_id !== (currentUser as any).id);
+      if (other) {
+        const friend = friends.find(f => f.id === other.user_id);
+        return { name: friend ? friend.name : "Unknown User", isGroup: false };
+      }
     }
     return { name: conv.name || "Conversation", isGroup: conv.is_group };
   };
@@ -355,11 +355,10 @@ function RouteComponent() {
         <div className="px-3 mb-2">
           <button
             onClick={() => setCurrentView("friends")}
-            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all group ${
-              currentView === "friends"
-                ? "bg-white/5 border border-white/5"
-                : "hover:bg-white/5 border border-transparent"
-            }`}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all group ${currentView === "friends"
+              ? "bg-white/5 border border-white/5"
+              : "hover:bg-white/5 border border-transparent"
+              }`}
           >
             <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 border border-zinc-700 transition-colors group-hover:border-indigo-500/50">
               <Users size={18} />
@@ -375,56 +374,56 @@ function RouteComponent() {
             Direct Messages
           </h3>
           {conversations.map((conv) => {
-             const info = getDisplayInfo(conv);
-             return (
-            <button
-              key={conv.id}
-              onClick={() => {
-                setActiveChat(conv.id);
-                setCurrentView("chat");
-              }}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
-                currentView === "chat" && activeChat === conv.id
+            const info = getDisplayInfo(conv);
+            return (
+              <button
+                key={conv.id}
+                onClick={() => {
+                  setActiveChat(conv.id);
+                  setCurrentView("chat");
+                }}
+                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${currentView === "chat" && activeChat === conv.id
                   ? "bg-white/5 border-white/5"
                   : "hover:bg-white/5"
-              }`}
-            >
-              <div className="relative">
-                {info.isGroup ? (
-                  <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 border border-zinc-700">
-                    <Hash size={18} />
+                  }`}
+              >
+                <div className="relative">
+                  {info.isGroup ? (
+                    <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 border border-zinc-700">
+                      <Hash size={18} />
+                    </div>
+                  ) : (
+                    <img
+                      src={"https://github.com/shadcn.png"}
+                      alt={info.name}
+                      className="w-10 h-10 rounded-xl grayscale group-hover:grayscale-0 transition-all"
+                    />
+                  )}
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-medium text-white">
+                    {info.name}
                   </div>
-                ) : (
-                  <img
-                    src={"https://github.com/shadcn.png"}
-                    alt={info.name}
-                    className="w-10 h-10 rounded-xl grayscale group-hover:grayscale-0 transition-all"
-                  />
-                )}
-              </div>
-              <div className="flex-1 text-left">
-                <div className="text-sm font-medium text-white">
-                  {info.name}
+                  <div className="text-xs font-mono text-zinc-600 truncate">
+                    {info.isGroup ? "Group Chat" : "DM"}
+                  </div>
                 </div>
-                <div className="text-xs font-mono text-zinc-600 truncate">
-                  {info.isGroup ? "Group Chat" : "DM"}
-                </div>
-              </div>
-            </button>
-          )})}
+              </button>
+            )
+          })}
         </div>
 
         <div className="p-4 border-t border-white/5 bg-zinc-900/30">
           <div className="flex items-center gap-3">
-             {/* Current User Profile Footer */}
-             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 border border-white/10" />
-             <div className="flex-1">
-               <div className="text-sm text-white font-medium">{(currentUser as any).name || "Me"}</div>
-               <div className="text-[10px] text-emerald-500 font-mono">
-                  Online
-               </div>
-             </div>
-             <SettingsComponent />
+            {/* Current User Profile Footer */}
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 border border-white/10" />
+            <div className="flex-1">
+              <div className="text-sm text-white font-medium">{(currentUser as any).name || "Me"}</div>
+              <div className="text-[10px] text-emerald-500 font-mono">
+                Online
+              </div>
+            </div>
+            <SettingsComponent />
           </div>
         </div>
       </aside>
@@ -434,61 +433,61 @@ function RouteComponent() {
           <div className="flex flex-col items-center text-zinc-500 p-8 max-w-2xl mx-auto w-full">
             {/* ... Friend View Content ... */}
             <h2 className="text-2xl font-medium text-white mb-2">Friends List</h2>
-             {/* Simplified for brevity in replacement, but keeping core logic */}
-             <form onSubmit={handleAddFriendSubmit} className="w-full max-w-md mb-8 mt-6">
-                 {/* Input ... */}
-                 <div className="relative group">
-                    <UserPlus className="absolute left-3 top-3 text-zinc-600 w-5 h-5" />
-                    <input
-                      value={friendSearchQuery}
-                      onChange={(e) => setFriendSearchQuery(e.target.value)}
-                      placeholder="Enter username to add..."
-                      className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-3 pl-11 pr-24 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all"
-                    />
-                    <button type="submit" className="absolute right-2 top-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg">
-                      {isAddingFriend ? <Loader2 size={16} className="animate-spin"/> : "Add"}
-                    </button>
-                 </div>
-                 {friendSuccess && <div className="text-emerald-400 text-sm mt-2">{friendSuccess}</div>}
-                 {friendError && <div className="text-red-400 text-sm mt-2">{friendError}</div>}
-             </form>
+            {/* Simplified for brevity in replacement, but keeping core logic */}
+            <form onSubmit={handleAddFriendSubmit} className="w-full max-w-md mb-8 mt-6">
+              {/* Input ... */}
+              <div className="relative group">
+                <UserPlus className="absolute left-3 top-3 text-zinc-600 w-5 h-5" />
+                <input
+                  value={friendSearchQuery}
+                  onChange={(e) => setFriendSearchQuery(e.target.value)}
+                  placeholder="Enter username to add..."
+                  className="w-full bg-zinc-900/50 border border-zinc-800 rounded-xl py-3 pl-11 pr-24 text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-all"
+                />
+                <button type="submit" className="absolute right-2 top-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg">
+                  {isAddingFriend ? <Loader2 size={16} className="animate-spin" /> : "Add"}
+                </button>
+              </div>
+              {friendSuccess && <div className="text-emerald-400 text-sm mt-2">{friendSuccess}</div>}
+              {friendError && <div className="text-red-400 text-sm mt-2">{friendError}</div>}
+            </form>
 
-             {/* Pending Requests */}
-             {pendingRequests.length > 0 && (
-                <div className="w-full max-w-md mb-8">
-                   <h3 className="text-xs font-mono text-zinc-600 mb-2 uppercase">Requests</h3>
-                   {pendingRequests.map(r => (
-                      <div key={r.id} className="flex items-center justify-between p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl mb-2">
-                         <span className="text-white text-sm">{r.sender_name}</span>
-                         <div className="flex gap-2">
-                            <button onClick={() => handleAccept(r.id)}><Check size={18} className="text-emerald-500"/></button>
-                            <button onClick={() => handleReject(r.id)}><X size={18} className="text-red-500"/></button>
-                         </div>
-                      </div>
-                   ))}
-                </div>
-             )}
-
-             {/* Friends List */}
-             <div className="w-full max-w-md">
-                <h3 className="text-xs font-mono text-zinc-600 mb-2 uppercase">Friends ({friends.length})</h3>
-                {friends.map(f => (
-                   <div key={f.id} className="flex items-center gap-4 p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl mb-2 hover:border-zinc-700 group">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white">
-                        {f.name[0].toUpperCase()}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-white text-sm font-medium">{f.name}</div>
-                      </div>
-                      <button
-                        onClick={() => startChatWithFriend(f)}
-                        className="text-xs text-zinc-500 hover:text-indigo-400 transition-colors opacity-0 group-hover:opacity-100"
-                      >
-                        Chat →
-                      </button>
-                   </div>
+            {/* Pending Requests */}
+            {pendingRequests.length > 0 && (
+              <div className="w-full max-w-md mb-8">
+                <h3 className="text-xs font-mono text-zinc-600 mb-2 uppercase">Requests</h3>
+                {pendingRequests.map(r => (
+                  <div key={r.id} className="flex items-center justify-between p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl mb-2">
+                    <span className="text-white text-sm">{r.sender_name}</span>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleAccept(r.id)}><Check size={18} className="text-emerald-500" /></button>
+                      <button onClick={() => handleReject(r.id)}><X size={18} className="text-red-500" /></button>
+                    </div>
+                  </div>
                 ))}
-             </div>
+              </div>
+            )}
+
+            {/* Friends List */}
+            <div className="w-full max-w-md">
+              <h3 className="text-xs font-mono text-zinc-600 mb-2 uppercase">Friends ({friends.length})</h3>
+              {friends.map(f => (
+                <div key={f.id} className="flex items-center gap-4 p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl mb-2 hover:border-zinc-700 group">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white">
+                    {f.name[0].toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-white text-sm font-medium">{f.name}</div>
+                  </div>
+                  <button
+                    onClick={() => startChatWithFriend(f)}
+                    className="text-xs text-zinc-500 hover:text-indigo-400 transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    Chat →
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         </main>
       ) : activeConversation ? (
@@ -503,8 +502,8 @@ function RouteComponent() {
                   </div>
                 </div>
                 <div className="flex items-center gap-4 text-zinc-400">
-                   {/* Icons */}
-                   <MoreVertical size={20} />
+                  {/* Icons */}
+                  <MoreVertical size={20} />
                 </div>
               </div>
             </div>
@@ -520,11 +519,10 @@ function RouteComponent() {
                   >
                     <div className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
                       <div
-                        className={`px-6 py-3.5 rounded-2xl text-sm ${
-                          isMe
-                            ? "bg-zinc-800/50 border border-indigo-500/20 text-indigo-50"
-                            : "bg-zinc-900 border border-zinc-800 text-zinc-300"
-                        }`}
+                        className={`px-6 py-3.5 rounded-2xl text-sm ${isMe
+                          ? "bg-zinc-800/50 border border-indigo-500/20 text-indigo-50"
+                          : "bg-zinc-900 border border-zinc-800 text-zinc-300"
+                          }`}
                       >
                         {msg.text}
                       </div>
@@ -563,18 +561,18 @@ function RouteComponent() {
           </main>
 
           {/* Right Sidebar - Simplified */}
-           <aside className="w-72 bg-[#050505] border-l border-white/5 hidden xl:flex flex-col">
-              <div className="p-6 flex flex-col items-center border-b border-white/5">
-                 <div className="w-24 h-24 bg-zinc-900 rounded-2xl mb-4 flex items-center justify-center">
-                    <Hash className="text-zinc-600"/>
-                 </div>
-                 <h2 className="text-lg font-medium text-white">{getDisplayInfo(activeConversation).name}</h2>
+          <aside className="w-72 bg-[#050505] border-l border-white/5 hidden xl:flex flex-col">
+            <div className="p-6 flex flex-col items-center border-b border-white/5">
+              <div className="w-24 h-24 bg-zinc-900 rounded-2xl mb-4 flex items-center justify-center">
+                <Hash className="text-zinc-600" />
               </div>
-           </aside>
+              <h2 className="text-lg font-medium text-white">{getDisplayInfo(activeConversation).name}</h2>
+            </div>
+          </aside>
         </>
       ) : (
         <div className="flex-1 flex items-center justify-center text-zinc-500">
-           Select a conversation to start chatting
+          Select a conversation to start chatting
         </div>
       )}
     </div>
