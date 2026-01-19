@@ -38,7 +38,7 @@ func HandleRegister(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
-		Secure:   false,
+		Secure:   true,
 	})
 
 	w.WriteHeader(http.StatusCreated)

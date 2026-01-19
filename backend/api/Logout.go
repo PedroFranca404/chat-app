@@ -18,7 +18,7 @@ func HandleLogout(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		MaxAge:   -1,
 		SameSite: http.SameSiteLaxMode,
-		Secure:   false,
+		Secure:   true,
 	})
 
 	w.Header().Set("Content-Type", "application/json")
