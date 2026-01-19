@@ -28,8 +28,8 @@ func StartServer(hub *Hub) {
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = ":8080"
+		port = "8080"
 	}
 
-	http.ListenAndServe(port, config.Cors(http.DefaultServeMux))
+	http.ListenAndServe(":"+port, config.Cors(http.DefaultServeMux))
 }
