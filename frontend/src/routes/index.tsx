@@ -145,7 +145,7 @@ function RouteComponent() {
 
   const fetchMessages = async (chatId: string) => {
     try {
-      const msgs = await handleGetMessages(chatId);
+      const msgs = (await handleGetMessages(chatId)).reverse();
       const mappedMessages: MessageUI[] = msgs.map(m => ({
         id: m.id,
         text: m.content,
