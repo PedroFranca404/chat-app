@@ -95,3 +95,41 @@ export const handleSendMessage = async (conversationId: string, content: string,
     throw new Error(e.response?.data?.message || "Could not send message.");
   }
 };
+export interface EditMessageRequest {
+  client_id: string;
+  message_id: string;
+  content: string;
+}
+
+export interface DeleteMessageRequest {
+  client_id: string;
+  message_id: string;
+}
+
+export const handleEditMessage = async (messageId: string, content: string, clientId: string): Promise<Message> => {
+  try {
+    const response = await api.post("/edit_message", { message_id: messageId, content, client_id: clientId } as EditMessageRequest, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (e: any) {
+    if (e.code === "ERR_NETWORK") {
+      throw new Error("Oops. Either your servers took a break or you're offline.");
+    }
+    throw new Error(e.response?.data?.message || "Could not edit message.");
+  }
+};
+
+export const handleDeleteMessage = async (messageId: string, clientId: string): Promise<Message> => {
+  try {
+    const response = await api.post("/delete_message", { message_id: messageId, client_id: clientId } as DeleteMessageRequest, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (e: any) {
+    if (e.code === "ERR_NETWORK") {
+      throw new Error("Oops. Either your servers took a break or you're offline.");
+    }
+    throw new Error(e.response?.data?.message || "Could not delete message.");
+  }
+};

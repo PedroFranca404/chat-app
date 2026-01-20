@@ -22,6 +22,12 @@ func StartServer(hub *Hub) {
 	http.HandleFunc("/send_message", func(w http.ResponseWriter, r *http.Request) {
 		HandleSendMessage(hub, w, r)
 	})
+	http.HandleFunc("/edit_message", func(w http.ResponseWriter, r *http.Request) {
+		HandleEditMessage(hub, w, r)
+	})
+	http.HandleFunc("/delete_message", func(w http.ResponseWriter, r *http.Request) {
+		HandleDeleteMessage(hub, w, r)
+	})
 	http.HandleFunc("/get_messages", HandleGetMessages)
 	http.HandleFunc("/create_conversation", HandleCreateConversation)
 	http.HandleFunc("/get_conversations", HandleGetConversations)
