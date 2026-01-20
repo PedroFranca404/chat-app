@@ -29,7 +29,8 @@ import {
   handleGetMessages,
   handleSendMessage,
   handleEditMessage,
-  handleDeleteMessage
+  handleDeleteMessage,
+  handleHideConversation
 } from "../services/Conversations";
 
 type ViewType = "chat" | "friends";
@@ -350,6 +351,7 @@ function RouteComponent() {
 
       const other = conv.participants.find(p => p.user_id !== (currentUser as any).id);
       if (other) {
+        if (other.user?.name) return { name: other.user.name, isGroup: false };
         const friend = friends.find(f => f.id === other.user_id);
         return { name: friend ? friend.name : "Unknown User", isGroup: false };
       }
@@ -417,39 +419,59 @@ function RouteComponent() {
           {conversations.map((conv) => {
             const info = getDisplayInfo(conv);
             return (
-              <button
-                key={conv.id}
-                onClick={() => {
-                  setActiveChat(conv.id);
-                  setCurrentView("chat");
-                }}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${currentView === "chat" && activeChat === conv.id
-                  ? "bg-white/5 border-white/5"
-                  : "hover:bg-white/5"
-                  }`}
-              >
-                <div className="relative">
-                  {info.isGroup ? (
-                    <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 border border-zinc-700">
-                      <Hash size={18} />
+              <div key={conv.id} className="relative group/item">
+                <button
+                  onClick={() => {
+                    setActiveChat(conv.id);
+                    setCurrentView("chat");
+                  }}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${currentView === "chat" && activeChat === conv.id
+                    ? "bg-white/5 border-white/5"
+                    : "hover:bg-white/5"
+                    }`}
+                >
+                  <div className="relative">
+                    {info.isGroup ? (
+                      <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-zinc-400 border border-zinc-700">
+                        <Hash size={18} />
+                      </div>
+                    ) : (
+                      <img
+                        src={"https://github.com/shadcn.png"}
+                        alt={info.name}
+                        className="w-10 h-10 rounded-xl grayscale group-hover:grayscale-0 transition-all"
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <div className="text-sm font-medium text-white truncate w-32">
+                      {info.name}
                     </div>
-                  ) : (
-                    <img
-                      src={"https://github.com/shadcn.png"}
-                      alt={info.name}
-                      className="w-10 h-10 rounded-xl grayscale group-hover:grayscale-0 transition-all"
-                    />
-                  )}
-                </div>
-                <div className="flex-1 text-left">
-                  <div className="text-sm font-medium text-white">
-                    {info.name}
+                    <div className="text-xs font-mono text-zinc-600 truncate">
+                      {info.isGroup ? "Group Chat" : "DM"}
+                    </div>
                   </div>
-                  <div className="text-xs font-mono text-zinc-600 truncate">
-                    {info.isGroup ? "Group Chat" : "DM"}
-                  </div>
-                </div>
-              </button>
+                </button>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (window.confirm("Are you sure you want to hide this conversation?")) {
+                      try {
+                        await handleHideConversation(conv.id);
+                        setConversations(prev => prev.filter(c => c.id !== conv.id));
+                        if (activeChat === conv.id) {
+                          setActiveChat(null);
+                        }
+                      } catch (err) {
+                        console.error("Failed to hide conversation", err);
+                      }
+                    }
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-all z-10"
+                >
+                  <X size={14} />
+                </button>
+              </div>
             )
           })}
         </div>

@@ -14,6 +14,10 @@ export interface Participant {
   conversation_id: string;
   role: string;
   joined_at: string;
+  user?: {
+    name: string;
+    avatar_url: string;
+  };
 }
 
 export interface Message {
@@ -131,5 +135,18 @@ export const handleDeleteMessage = async (messageId: string, clientId: string): 
       throw new Error("Oops. Either your servers took a break or you're offline.");
     }
     throw new Error(e.response?.data?.message || "Could not delete message.");
+  }
+};
+
+export const handleHideConversation = async (conversationId: string): Promise<void> => {
+  try {
+    await api.post("/hide_conversation", { conversation_id: conversationId }, {
+      withCredentials: true,
+    });
+  } catch (e: any) {
+    if (e.code === "ERR_NETWORK") {
+      throw new Error("Oops. Either your servers took a break or you're offline.");
+    }
+    throw new Error(e.response?.data?.message || "Could not hide conversation.");
   }
 };

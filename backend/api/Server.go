@@ -31,11 +31,14 @@ func StartServer(hub *Hub) {
 	http.HandleFunc("/get_messages", HandleGetMessages)
 	http.HandleFunc("/create_conversation", HandleCreateConversation)
 	http.HandleFunc("/get_conversations", HandleGetConversations)
+	http.HandleFunc("/hide_conversation", HandleHideConversation)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	http.ListenAndServe(":"+port, config.Cors(http.DefaultServeMux))
+	if err := http.ListenAndServe(":"+port, config.Cors(http.DefaultServeMux)); err != nil {
+		panic(err)
+	}
 }

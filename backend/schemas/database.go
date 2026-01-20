@@ -32,10 +32,11 @@ type Users struct {
 }
 
 type Conversations struct {
-	Id        uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	Name      string    `json:"name"`
-	IsGroup   bool      `json:"is_group"`
-	CreatedAt time.Time `json:"created_at"`
+	Id           uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+	Name         string         `json:"name"`
+	IsGroup      bool           `json:"is_group"`
+	CreatedAt    time.Time      `json:"created_at"`
+	Participants []Participants `gorm:"foreignKey:ConversationId" json:"participants"`
 }
 
 type Participants struct {
@@ -44,6 +45,8 @@ type Participants struct {
 	ConversationId uuid.UUID `gorm:"type:uuid;not null;uniqueIndex:idx_chat_participant;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"conversation_id"`
 	Role           string    `json:"role"`
 	JoinedAt       time.Time `json:"joined_at"`
+	Hidden         bool      `json:"hidden"`
+	User           *Users    `gorm:"foreignKey:UserId;references:Id" json:"user,omitempty"`
 }
 
 type Messages struct {

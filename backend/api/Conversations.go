@@ -103,3 +103,41 @@ func HandleGetConversations(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(conversations)
 }
+
+func HandleHideConversation(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	cookie, err := r.Cookie("client_id")
+	if err != nil || cookie.Value == "" {
+		http.Error(w, "Unauthorized: No session found", http.StatusUnauthorized)
+		return
+	}
+
+	var currentUser schemas.Users
+	if err := config.DB.Where("client_id = ?", cookie.Value).First(&currentUser).Error; err != nil {
+		http.Error(w, "Unauthorized: Invalid session", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		ConversationID uuid.UUID `json:"conversation_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid Request Body", http.StatusBadRequest)
+		return
+	}
+
+	if err := config.DB.Model(&schemas.Participants{}).
+		Where("conversation_id = ? AND user_id = ?", req.ConversationID, currentUser.Id).
+		Update("hidden", true).Error; err != nil {
+		http.Error(w, "Failed to hide conversation: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Conversation hidden successfully"})
+}
