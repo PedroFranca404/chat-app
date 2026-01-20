@@ -81,8 +81,8 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		Value:    newClientId.String(),
 		Path:     "/",
 		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		Secure:   false,
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
 	})
 
 	w.Header().Set("Content-Type", "application/json")
