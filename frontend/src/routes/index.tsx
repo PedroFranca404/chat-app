@@ -15,6 +15,8 @@ import {
   X,
   Check,
   Loader2,
+  Edit2,
+  Trash2,
 } from "lucide-react";
 import { handleLogout, ValidateUser } from "../services/Auth";
 import { SettingsComponent } from "../components/settings";
@@ -25,7 +27,9 @@ import {
   handleGetConversations,
   handleCreateConversation,
   handleGetMessages,
-  handleSendMessage
+  handleSendMessage,
+  handleEditMessage,
+  handleDeleteMessage
 } from "../services/Conversations";
 
 type ViewType = "chat" | "friends";
@@ -62,6 +66,8 @@ function RouteComponent() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<ChatMap>({});
   const [inputText, setInputText] = useState<string>("");
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -114,8 +120,11 @@ function RouteComponent() {
 
           setMessages(prev => {
             const chatMsgs = prev[msg.conversation_id] || [];
-            if (msg.sender_id === currentUser.id) {
-              return { ...prev, [msg.conversation_id]: [...chatMsgs, mappedMsg] };
+            const existingIndex = chatMsgs.findIndex(m => m.id === msg.id);
+            if (existingIndex !== -1) {
+              const updatedMsgs = [...chatMsgs];
+              updatedMsgs[existingIndex] = mappedMsg;
+              return { ...prev, [msg.conversation_id]: updatedMsgs };
             }
             return { ...prev, [msg.conversation_id]: [...chatMsgs, mappedMsg] };
           });
@@ -258,6 +267,38 @@ function RouteComponent() {
       console.error("Failed to send message", err);
       setInputText(content);
     }
+  };
+
+  const handleEditClick = (msg: MessageUI) => {
+    setEditingMessageId(msg.id);
+    setEditContent(msg.text);
+  };
+
+  const handleDeleteClick = async (messageId: string) => {
+    if (!window.confirm("Are you sure you want to delete this message?")) return;
+    try {
+      await handleDeleteMessage(messageId, currentUser.client_id);
+    } catch (err) {
+      console.error("Failed to delete message", err);
+    }
+  };
+
+  const handleUpdateMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editContent.trim() || !editingMessageId) return;
+
+    try {
+      await handleEditMessage(editingMessageId, editContent, currentUser.client_id);
+      setEditingMessageId(null);
+      setEditContent("");
+    } catch (err) {
+      console.error("Failed to edit message", err);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMessageId(null);
+    setEditContent("");
   };
 
   const startChatWithFriend = async (friend: Friend) => {
@@ -524,7 +565,42 @@ function RouteComponent() {
                           : "bg-zinc-900 border border-zinc-800 text-zinc-300"
                           }`}
                       >
-                        {msg.text}
+                        {editingMessageId === msg.id ? (
+                          <form onSubmit={handleUpdateMessage} className="flex flex-col gap-2 min-w-[200px]">
+                            <input
+                              value={editContent}
+                              onChange={(e) => setEditContent(e.target.value)}
+                              className="bg-transparent border-b border-white/20 focus:outline-none focus:border-white/50 pb-1 text-zinc-200 w-full"
+                              autoFocus
+                            />
+                            <div className="flex justify-end gap-2">
+                              <button type="button" onClick={handleCancelEdit} className="text-xs text-zinc-400 hover:text-white">Cancel</button>
+                              <button type="submit" className="text-xs text-indigo-400 hover:text-indigo-300">Save</button>
+                            </div>
+                          </form>
+                        ) : (
+                          <div className="relative group/bubble">
+                            {msg.text}
+                            {isMe && msg.text !== "Message Erased" && (
+                              <div className="absolute -right-6 top-0 hidden group-hover/bubble:flex flex-col gap-1 bg-zinc-900 border border-zinc-800 rounded-md p-1 shadow-lg z-10">
+                                <button
+                                  onClick={() => handleEditClick(msg)}
+                                  className="text-zinc-500 hover:text-indigo-400 p-1 rounded"
+                                  title="Edit"
+                                >
+                                  <Edit2 size={12} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteClick(msg.id)}
+                                  className="text-zinc-500 hover:text-red-400 p-1 rounded"
+                                  title="Delete"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] font-mono text-zinc-600">
