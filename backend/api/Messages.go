@@ -16,6 +16,17 @@ type SendMessageRequest struct {
 	Content        string `json:"content"`
 }
 
+type EditMessageRequest struct {
+	ClientId  string `json:"client_id"`
+	MessageId string `json:"message_id"`
+	Content   string `json:"content"`
+}
+
+type DeleteMessageRequest struct {
+	ClientId  string `json:"client_id"`
+	MessageId string `json:"message_id"`
+}
+
 func HandleSendMessage(hub *Hub, w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -109,4 +120,105 @@ func HandleGetMessages(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(messages)
+}
+
+func HandleEditMessage(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req EditMessageRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid body", http.StatusBadRequest)
+		return
+	}
+
+	user, err := ValidateUser(req.ClientId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	msgUUID, err := uuid.Parse(req.MessageId)
+	if err != nil {
+		http.Error(w, "Invalid message_id", http.StatusBadRequest)
+		return
+	}
+
+	msg, err := repository.GetMessageById(msgUUID)
+	if err != nil {
+		http.Error(w, "Message not found", http.StatusNotFound)
+		return
+	}
+
+	if msg.SenderId != user.Id {
+		http.Error(w, "Unauthorized to edit this message", http.StatusForbidden)
+		return
+	}
+
+	err = repository.EditMessage(msgUUID, req.Content)
+	if err != nil {
+		http.Error(w, "Failed to edit message: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	msg.Content = req.Content
+
+	msgBytes, _ := json.Marshal(msg)
+	hub.broadcast <- msgBytes
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(msg)
+}
+
+func HandleDeleteMessage(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req DeleteMessageRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid body", http.StatusBadRequest)
+		return
+	}
+
+	user, err := ValidateUser(req.ClientId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	msgUUID, err := uuid.Parse(req.MessageId)
+	if err != nil {
+		http.Error(w, "Invalid message_id", http.StatusBadRequest)
+		return
+	}
+
+	msg, err := repository.GetMessageById(msgUUID)
+	if err != nil {
+		http.Error(w, "Message not found", http.StatusNotFound)
+		return
+	}
+
+	if msg.SenderId != user.Id {
+		http.Error(w, "Unauthorized to delete this message", http.StatusForbidden)
+		return
+	}
+
+	err = repository.EraseMessage(msgUUID)
+	if err != nil {
+		http.Error(w, "Failed to delete message: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	msg.Content = "Message Erased"
+	msg.Type = "deleted"
+
+	msgBytes, _ := json.Marshal(msg)
+	hub.broadcast <- msgBytes
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(msg)
 }

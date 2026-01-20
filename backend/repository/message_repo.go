@@ -26,8 +26,28 @@ func AddMessage(senderId, conversationId uuid.UUID, content string) (*schemas.Me
 	return &msg, result.Error
 }
 
-func RemoveMessage(msgId uuid.UUID) error {
-	result := config.DB.Delete(&schemas.Messages{}, msgId)
+func AddSystemMessage(senderId, conversationId uuid.UUID, content string) (*schemas.Messages, error) {
+	if err := utils.ValidateInput(content, 2000); err != nil {
+		return nil, err
+	}
+
+	msg := schemas.Messages{
+		SenderId:       senderId,
+		ConversationId: conversationId,
+		Content:        content,
+		Type:           "system",
+		CreatedAt:      time.Now(),
+	}
+
+	result := config.DB.Create(&msg)
+	return &msg, result.Error
+}
+
+func EraseMessage(msgId uuid.UUID) error {
+	result := config.DB.Model(&schemas.Messages{}).Where("id = ?", msgId).Updates(map[string]interface{}{
+		"content": "Message Erased",
+		"type":    "deleted",
+	})
 	return result.Error
 }
 
@@ -58,4 +78,10 @@ func GetMessages(conversationId uuid.UUID, limit, offset int) ([]schemas.Message
 		Offset(offset).
 		Find(&messages)
 	return messages, result.Error
+}
+
+func GetMessageById(msgId uuid.UUID) (*schemas.Messages, error) {
+	var msg schemas.Messages
+	result := config.DB.First(&msg, "id = ?", msgId)
+	return &msg, result.Error
 }

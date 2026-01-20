@@ -22,14 +22,27 @@ func StartServer(hub *Hub) {
 	http.HandleFunc("/send_message", func(w http.ResponseWriter, r *http.Request) {
 		HandleSendMessage(hub, w, r)
 	})
+	http.HandleFunc("/edit_message", func(w http.ResponseWriter, r *http.Request) {
+		HandleEditMessage(hub, w, r)
+	})
+	http.HandleFunc("/delete_message", func(w http.ResponseWriter, r *http.Request) {
+		HandleDeleteMessage(hub, w, r)
+	})
 	http.HandleFunc("/get_messages", HandleGetMessages)
 	http.HandleFunc("/create_conversation", HandleCreateConversation)
 	http.HandleFunc("/get_conversations", HandleGetConversations)
+	http.HandleFunc("/hide_conversation", HandleHideConversation)
+	http.HandleFunc("/update_conversation", HandleUpdateConversation)
+	http.HandleFunc("/leave_conversation", func(w http.ResponseWriter, r *http.Request) {
+		HandleLeaveConversation(hub, w, r)
+	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	http.ListenAndServe(":"+port, config.Cors(http.DefaultServeMux))
+	if err := http.ListenAndServe(":"+port, config.Cors(http.DefaultServeMux)); err != nil {
+		panic(err)
+	}
 }
