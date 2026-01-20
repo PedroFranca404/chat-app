@@ -26,6 +26,23 @@ func AddMessage(senderId, conversationId uuid.UUID, content string) (*schemas.Me
 	return &msg, result.Error
 }
 
+func AddSystemMessage(senderId, conversationId uuid.UUID, content string) (*schemas.Messages, error) {
+	if err := utils.ValidateInput(content, 2000); err != nil {
+		return nil, err
+	}
+
+	msg := schemas.Messages{
+		SenderId:       senderId,
+		ConversationId: conversationId,
+		Content:        content,
+		Type:           "system",
+		CreatedAt:      time.Now(),
+	}
+
+	result := config.DB.Create(&msg)
+	return &msg, result.Error
+}
+
 func EraseMessage(msgId uuid.UUID) error {
 	result := config.DB.Model(&schemas.Messages{}).Where("id = ?", msgId).Updates(map[string]interface{}{
 		"content": "Message Erased",

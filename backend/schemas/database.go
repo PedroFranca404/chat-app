@@ -36,6 +36,8 @@ type Conversations struct {
 	Name         string         `json:"name"`
 	IsGroup      bool           `json:"is_group"`
 	CreatedAt    time.Time      `json:"created_at"`
+	Description  string         `json:"description"`
+	AvatarUrl    string         `json:"avatar_url"`
 	Participants []Participants `gorm:"foreignKey:ConversationId" json:"participants"`
 }
 

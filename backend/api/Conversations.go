@@ -141,3 +141,96 @@ func HandleHideConversation(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "Conversation hidden successfully"})
 }
+
+func HandleUpdateConversation(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	cookie, err := r.Cookie("client_id")
+	if err != nil || cookie.Value == "" {
+		http.Error(w, "Unauthorized: No session found", http.StatusUnauthorized)
+		return
+	}
+
+	var currentUser schemas.Users
+	if err := config.DB.Where("client_id = ?", cookie.Value).First(&currentUser).Error; err != nil {
+		http.Error(w, "Unauthorized: Invalid session", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		ConversationID uuid.UUID `json:"conversation_id"`
+		Name           string    `json:"name"`
+		Description    string    `json:"description"`
+		AvatarUrl      string    `json:"avatar_url"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid Request Body", http.StatusBadRequest)
+		return
+	}
+
+	var participant schemas.Participants
+	if err := config.DB.Where("conversation_id = ? AND user_id = ?", req.ConversationID, currentUser.Id).First(&participant).Error; err != nil {
+		http.Error(w, "Unauthorized: You are not a member of this group", http.StatusUnauthorized)
+		return
+	}
+
+	if participant.Role != "admin" {
+		http.Error(w, "Unauthorized: Only admins can update group details", http.StatusUnauthorized)
+		return
+	}
+
+	updatedConv, err := repository.UpdateConversation(req.ConversationID, req.Name, req.Description, req.AvatarUrl)
+	if err != nil {
+		http.Error(w, "Failed to update conversation: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updatedConv)
+}
+
+func HandleLeaveConversation(hub *Hub, w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	cookie, err := r.Cookie("client_id")
+	if err != nil || cookie.Value == "" {
+		http.Error(w, "Unauthorized: No session found", http.StatusUnauthorized)
+		return
+	}
+
+	var currentUser schemas.Users
+	if err := config.DB.Where("client_id = ?", cookie.Value).First(&currentUser).Error; err != nil {
+		http.Error(w, "Unauthorized: Invalid session", http.StatusUnauthorized)
+		return
+	}
+
+	var req struct {
+		ConversationID uuid.UUID `json:"conversation_id"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid Request Body", http.StatusBadRequest)
+		return
+	}
+
+	// Create system message
+	if msg, err := repository.AddSystemMessage(currentUser.Id, req.ConversationID, currentUser.Name+" left the group."); err == nil {
+		msgBytes, _ := json.Marshal(msg)
+		hub.broadcast <- msgBytes
+	}
+
+	if err := repository.LeaveConversation(req.ConversationID, currentUser.Id); err != nil {
+		http.Error(w, "Failed to leave conversation: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Left conversation successfully"})
+}

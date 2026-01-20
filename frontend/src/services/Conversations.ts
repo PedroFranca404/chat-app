@@ -5,6 +5,8 @@ export interface Conversation {
   name: string;
   is_group: boolean;
   created_at: string;
+  description?: string;
+  avatar_url?: string;
   participants: Participant[];
 }
 
@@ -43,7 +45,7 @@ export interface SendMessageRequest {
 
 export const handleCreateConversation = async (name: string, isGroup: boolean, usernames: string[]): Promise<Conversation> => {
   try {
-    const response = await api.post("/create_conversation", { name, isGroup, usernames } as CreateConversationRequest, {
+    const response = await api.post("/create_conversation", { name, is_group: isGroup, usernames } as any, {
       withCredentials: true,
     });
     return response.data;
@@ -148,5 +150,32 @@ export const handleHideConversation = async (conversationId: string): Promise<vo
       throw new Error("Oops. Either your servers took a break or you're offline.");
     }
     throw new Error(e.response?.data?.message || "Could not hide conversation.");
+  }
+};
+
+export const handleUpdateConversation = async (conversationId: string, name: string, description: string, avatarUrl: string): Promise<Conversation> => {
+  try {
+    const response = await api.post("/update_conversation", { conversation_id: conversationId, name, description, avatar_url: avatarUrl }, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (e: any) {
+    if (e.code === "ERR_NETWORK") {
+      throw new Error("Oops. Either your servers took a break or you're offline.");
+    }
+    throw new Error(e.response?.data?.message || "Could not update conversation.");
+  }
+};
+
+export const handleLeaveConversation = async (conversationId: string): Promise<void> => {
+  try {
+    await api.post("/leave_conversation", { conversation_id: conversationId }, {
+      withCredentials: true,
+    });
+  } catch (e: any) {
+    if (e.code === "ERR_NETWORK") {
+      throw new Error("Oops. Either your servers took a break or you're offline.");
+    }
+    throw new Error(e.response?.data?.message || "Could not leave conversation.");
   }
 };

@@ -52,12 +52,18 @@ func CreateConversation(name string, isGroup bool, userIds []uuid.UUID) (*schema
 
 	var participants []schemas.Participants
 
-	for _, uid := range cleanUserIds {
+	for i, uid := range cleanUserIds {
+		role := "member"
+		// If group, the first user (creator) is admin
+		if isGroup && i == 0 {
+			role = "admin"
+		}
+
 		participants = append(participants, schemas.Participants{
 			Id:             uuid.New(),
 			ConversationId: conv.Id,
 			UserId:         uid,
-			Role:           "member",
+			Role:           role,
 			JoinedAt:       time.Now(),
 		})
 	}
@@ -69,7 +75,25 @@ func CreateConversation(name string, isGroup bool, userIds []uuid.UUID) (*schema
 		}
 	}
 
+	conv.Participants = participants
+
 	tx.Commit()
+	return &conv, nil
+}
+
+func UpdateConversation(conversationId uuid.UUID, name, description, avatarUrl string) (*schemas.Conversations, error) {
+	var conv schemas.Conversations
+	if err := config.DB.First(&conv, conversationId).Error; err != nil {
+		return nil, err
+	}
+
+	conv.Name = name
+	conv.Description = description
+	conv.AvatarUrl = avatarUrl
+
+	if err := config.DB.Save(&conv).Error; err != nil {
+		return nil, err
+	}
 	return &conv, nil
 }
 
@@ -87,4 +111,9 @@ func GetConversations(userId uuid.UUID) ([]schemas.Conversations, error) {
 	}
 
 	return conversations, nil
+}
+
+func LeaveConversation(conversationId, userId uuid.UUID) error {
+	return config.DB.Where("conversation_id = ? AND user_id = ?", conversationId, userId).
+		Delete(&schemas.Participants{}).Error
 }
