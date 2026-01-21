@@ -1,7 +1,6 @@
 app
 backend/chat-app
 backend/main
-backend/go.sum
 frontend/node_modules
 frontend/logs
 frontend/*.log
@@ -24,3 +23,4 @@ frontend/*.njsproj
 frontend/*.sln
 frontend/*.sw?
 .env
+backend/vendor/

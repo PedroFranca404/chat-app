@@ -72,3 +72,31 @@ func GetPasswordOfUsername(username string) (string, error) {
 	}
 	return user.Password, nil
 }
+
+func UpdateUser(id uuid.UUID, name, status, avatarUrl string) (*schemas.Users, error) {
+	var user schemas.Users
+	if err := config.DB.First(&user, id).Error; err != nil {
+		return nil, err
+	}
+
+	if name != "" {
+		if err := utils.ValidateInput(name, 50); err != nil {
+			return nil, err
+		}
+		user.Name = name
+	}
+
+	if status != "" {
+		user.Status = status
+	}
+
+	if avatarUrl != "" {
+		user.AvatarUrl = avatarUrl
+	}
+
+	if err := config.DB.Save(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}

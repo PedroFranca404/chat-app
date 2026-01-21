@@ -57,3 +57,19 @@ export const handleLogout = async () => {
     console.log(e)
   }
 }
+
+export const handleUpdateUser = async (name: string, status: string, avatarUrl: string) => {
+  try {
+    const response = await api.post("/update_user", {
+      name,
+      status,
+      avatar_url: avatarUrl,
+    }, { withCredentials: true });
+    return response.data;
+  } catch (e: any) {
+    if (e.code === "ERR_NETWORK") {
+      throw new Error("Oops. Either your servers took a break or you're offline.");
+    }
+    throw new Error(e.response?.data?.message || "Could not update user.");
+  }
+}
