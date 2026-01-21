@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { handleGetFriends, Friend } from "../../../services/Friends";
+import { handleGetFriends, Friend } from "../services/Friends";
 
 export const useInitialFriends = (
     setFriends: React.Dispatch<React.SetStateAction<Friend[]>>

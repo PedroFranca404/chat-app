@@ -1,6 +1,6 @@
 import React from "react";
 import { UserPlus, Loader2, Check, X } from "lucide-react";
-import { Friend, FriendRequest } from "../../../services/Friends";
+import { Friend, FriendRequest } from "../../services/Friends";
 
 interface FriendsViewProps {
     friendSearchQuery: string;

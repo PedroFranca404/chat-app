@@ -1,6 +1,6 @@
 import React from "react";
 import { X, Search, Check, ChevronRight, ArrowLeft, Loader2, Users } from "lucide-react";
-import { Friend } from "../../../services/Friends";
+import { Friend } from "../../services/Friends";
 
 interface GroupCreationModalProps {
     isOpen: boolean;

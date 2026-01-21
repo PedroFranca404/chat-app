@@ -8,12 +8,12 @@ import {
     Plus,
     X
 } from "lucide-react";
-import { Conversation } from "../../../services/Conversations";
-import { SettingsComponent } from "../../../components/settings";
-import { getDisplayInfo } from "../utils/conversationUtils";
-import { Friend } from "../../../services/Friends";
-import { ViewType } from "../types";
-import { handleHideConversation, handleLeaveConversation } from "../../../services/Conversations";
+import { Conversation } from "../../services/Conversations";
+import { SettingsComponent } from "../settings";
+import { getDisplayInfo } from "../../utils/conversationUtils";
+import { Friend } from "../../services/Friends";
+import { ViewType } from "../../utils/types";
+import { handleHideConversation, handleLeaveConversation } from "../../services/Conversations";
 
 interface SidebarProps {
     currentUser: any;
@@ -26,6 +26,7 @@ interface SidebarProps {
     onLogout: () => void;
     onCreateGroup: () => void;
     setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>;
+    onUpdateUser: (user: any) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -38,7 +39,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     friends,
     onLogout,
     onCreateGroup,
-    setConversations
+    setConversations,
+    onUpdateUser
 }) => {
     return (
         <aside className="w-80 flex flex-col border-r border-white/5 bg-zinc-900/20 backdrop-blur-md relative z-50">
@@ -181,7 +183,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             Online
                         </div>
                     </div>
-                    <SettingsComponent />
+                    <SettingsComponent currentUser={currentUser} onUpdateUser={onUpdateUser} />
                 </div>
             </div>
         </aside>

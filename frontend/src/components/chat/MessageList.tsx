@@ -1,7 +1,7 @@
 import React from "react";
 import { Edit2, Trash2 } from "lucide-react";
-import { MessageUI } from "../types";
-import { Conversation } from "../../../services/Conversations";
+import { MessageUI } from "../../utils/types";
+import { Conversation } from "../../services/Conversations";
 
 interface MessageListProps {
     messages: MessageUI[];
@@ -20,7 +20,6 @@ interface MessageListProps {
 export const MessageList: React.FC<MessageListProps> = ({
     messages,
     activeConversation,
-    currentUser,
     editingMessageId,
     editContent,
     setEditContent,
