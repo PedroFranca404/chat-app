@@ -1,7 +1,6 @@
 app
 backend/chat-app
 backend/main
-backend/go.sum
 frontend/node_modules
 frontend/logs
 frontend/*.log
