@@ -10,18 +10,18 @@ import {
   handleDeleteMessage,
   handleUpdateConversation
 } from "../services/Conversations";
-import { ViewType, ChatMap } from "./chat/types";
-import { useWebSocket } from "./chat/hooks/useWebSocket";
-import { useFetchConversations, useFetchMessages } from "./chat/hooks/useConversations";
-import { useInitialFriends } from "./chat/hooks/useFriends";
-import { Sidebar } from "./chat/components/Sidebar";
-import { ChatHeader } from "./chat/components/ChatHeader";
-import { MessageList } from "./chat/components/MessageList";
-import { MessageInput } from "./chat/components/MessageInput";
-import { FriendsView } from "./chat/components/FriendsView";
-import { GroupCreationModal } from "./chat/components/GroupCreationModal";
-import { GroupEditModal } from "./chat/components/GroupEditModal";
-import { RightSidebar } from "./chat/components/RightSidebar";
+import { ViewType, ChatMap } from "../utils/types";
+import { useWebSocket } from "../hooks/useWebSocket";
+import { useFetchConversations, useFetchMessages } from "../hooks/useConversations";
+import { useInitialFriends } from "../hooks/useFriends";
+import { Sidebar } from "../components/chat/Sidebar";
+import { ChatHeader } from "../components/chat/ChatHeader";
+import { MessageList } from "../components/chat/MessageList";
+import { MessageInput } from "../components/chat/MessageInput";
+import { FriendsView } from "../components/chat/FriendsView";
+import { GroupCreationModal } from "../components/chat/GroupCreationModal";
+import { GroupEditModal } from "../components/chat/GroupEditModal";
+import { RightSidebar } from "../components/chat/RightSidebar";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
@@ -37,7 +37,8 @@ export const Route = createFileRoute("/")({
 
 function RouteComponent() {
   const navigate = useNavigate();
-  const { user: currentUser } = Route.useLoaderData();
+  const loaderData = Route.useLoaderData();
+  const [currentUser, setCurrentUser] = useState(loaderData.user);
   const wsBaseUrl = import.meta.env.VITE_WS_URL;
 
   const [currentView, setCurrentView] = useState<ViewType>("chat");
@@ -310,6 +311,7 @@ function RouteComponent() {
         onLogout={onLogout}
         onCreateGroup={handleOpenCreateGroupModal}
         setConversations={setConversations}
+        onUpdateUser={setCurrentUser}
       />
 
       {currentView === "friends" ? (

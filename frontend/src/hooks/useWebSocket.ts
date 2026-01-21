@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { Message } from "../../../services/Conversations";
-import { MessageUI, ChatMap } from "../types";
+import { Message } from "../services/Conversations";
+import { MessageUI, ChatMap } from "../utils/types";
 
 interface UseWebSocketProps {
     currentUser: any;

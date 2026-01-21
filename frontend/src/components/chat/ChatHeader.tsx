@@ -1,8 +1,8 @@
 import React from "react";
 import { MoreVertical } from "lucide-react";
-import { Conversation } from "../../../services/Conversations";
-import { getDisplayInfo } from "../utils/conversationUtils";
-import { Friend } from "../../../services/Friends";
+import { Conversation } from "../../services/Conversations";
+import { getDisplayInfo } from "../../utils/conversationUtils";
+import { Friend } from "../../services/Friends";
 
 interface ChatHeaderProps {
     activeConversation: Conversation;

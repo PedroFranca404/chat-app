@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { handleGetConversations, handleGetMessages, Conversation } from "../../../services/Conversations";
-import { MessageUI, ChatMap } from "../types";
+import { handleGetConversations, handleGetMessages, Conversation } from "../services/Conversations";
+import { MessageUI, ChatMap } from "../utils/types";
 
 export const useFetchConversations = (
     setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>
@@ -35,7 +35,7 @@ export const useFetchMessages = (
 
     const fetchMessages = async (chatId: string) => {
         try {
-            const msgs = (await handleGetMessages(chatId)).reverse();
+            const msgs = await handleGetMessages(chatId);
             const mappedMessages: MessageUI[] = msgs.map(m => ({
                 id: m.id,
                 text: m.content,

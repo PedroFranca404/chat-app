@@ -1,5 +1,5 @@
-import { Conversation } from "../../../services/Conversations";
-import { Friend } from "../../../services/Friends";
+import { Conversation } from "../services/Conversations";
+import { Friend } from "../services/Friends";
 
 export const getConversationDisplay = (conv: Conversation, currentUser: any) => {
     if (conv.is_group) {
