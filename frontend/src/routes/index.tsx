@@ -172,7 +172,7 @@ function RouteComponent() {
 
   const fetchMessages = async (chatId: string) => {
     try {
-      const msgs = await handleGetMessages(chatId);
+      const msgs = (await handleGetMessages(chatId)).reverse();
       const mappedMessages: MessageUI[] = msgs.map(m => ({
         id: m.id,
         text: m.content,
@@ -579,14 +579,30 @@ function RouteComponent() {
         <div className="p-4 border-t border-white/5 bg-zinc-900/30">
           <div className="flex items-center gap-3">
             {/* Current User Profile Footer */}
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 border border-white/10" />
+            {(currentUser as any).avatar_url && (currentUser as any).avatar_url !== "default.png" ? (
+              <img
+                src={(currentUser as any).avatar_url}
+                alt={(currentUser as any).name}
+                className="w-8 h-8 rounded-lg object-cover border border-white/10"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-500 to-purple-500 border border-white/10" />
+            )}
             <div className="flex-1">
               <div className="text-sm text-white font-medium">{(currentUser as any).name || "Me"}</div>
-              <div className="text-[10px] text-emerald-500 font-mono">
-                Online
+              <div className={`text-[10px] font-mono capitalize ${
+                  (currentUser as any).status === 'online' ? 'text-emerald-500' :
+                  (currentUser as any).status === 'busy' ? 'text-amber-500' : 'text-zinc-500'
+              }`}>
+                {(currentUser as any).status || "Offline"}
               </div>
             </div>
-            <SettingsComponent />
+            <SettingsComponent
+            currentUser={currentUser}
+            onUpdateUser={(updatedUser) => {
+                window.location.reload();
+            }}
+        />
           </div>
         </div>
       </aside>

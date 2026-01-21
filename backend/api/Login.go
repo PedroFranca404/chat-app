@@ -33,10 +33,12 @@ func HandleLogin(w http.ResponseWriter, r *http.Request) {
 		if err := config.DB.Where("client_id = ?", cookieValue).First(&user).Error; err == nil {
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(map[string]any{
-				"message":   "Login Successful!",
-				"client_id": user.ClientId,
-				"id":        user.Id,
-				"name":      user.Name,
+				"message":    "Login Successful!",
+				"client_id":  user.ClientId,
+				"id":         user.Id,
+				"name":       user.Name,
+				"status":     user.Status,
+				"avatar_url": user.AvatarUrl,
 			})
 			return
 		}

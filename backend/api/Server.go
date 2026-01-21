@@ -19,6 +19,7 @@ func StartServer(hub *Hub) {
 	http.HandleFunc("/get_friend_requests", HandleGetFriendRequests)
 	http.HandleFunc("/accept_friend_request", HandleAcceptFriendRequest)
 	http.HandleFunc("/reject_friend_request", HandleRejectFriendRequest)
+	http.HandleFunc("/update_user", HandleUpdateUser)
 	http.HandleFunc("/send_message", func(w http.ResponseWriter, r *http.Request) {
 		HandleSendMessage(hub, w, r)
 	})
