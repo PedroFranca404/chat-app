@@ -9,8 +9,6 @@
   [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
   [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)]()
   [![Made with Love](https://img.shields.io/badge/Made%20with-Love-ff69b4.svg)]()
-
-  [View Demo](https://your-demo-link.com) • [Report Bug](https://github.com/PedroFranca404/chat-app/issues) • [Request Feature](https://github.com/PedroFranca404/chat-app/issues)
 </div>
 
 ---
