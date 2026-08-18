@@ -31,16 +31,6 @@ We chose this project because we believe communication should be accessible, pri
 
 ---
 
-## Screenshots
-
-<div align="center">
-  <img src="./docs/images/login_screenshot.webp" alt="Login" width="700">
-  <br><br>
-  <img src="https://via.placeholder.com/800x400?text=App+View" alt="Main Viewport" width="300">
-</div>
-
----
-
 ## Tech Stack
 
 This project was built using the following technologies:
